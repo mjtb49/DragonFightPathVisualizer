@@ -1,0 +1,18 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "matthewbolan.enderdragonpaths.mixin",
+  "refmap": "modid.refmap.json",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "EnderDragonEntityMixin"
+  ],
+  "client": [
+    "DummyProfilerMixin",
+    "GameRendererMixin",
+    "MixinClientWorld"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
