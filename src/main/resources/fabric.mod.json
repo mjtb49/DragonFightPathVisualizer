@@ -3,10 +3,10 @@
   "id": "modid",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Dragon Path Visualizer",
+  "description": "Shows the paths taken by the ender dragon during the end fight",
   "authors": [
-    "Me!"
+    "Matthew Bolan, aka mjtb49"
   ],
   "contact": {
     "homepage": "https://fabricmc.net/",
@@ -28,7 +28,6 @@
 
   "depends": {
     "fabricloader": ">=0.7.4",
-    "fabric": "*",
     "minecraft": "1.16.x"
   },
   "suggests": {
