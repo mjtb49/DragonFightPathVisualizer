@@ -17,3 +17,5 @@ GREEN: The path intended by the dragon in a TAKEOFF phase
 PURPLE: The path intended by the dragon in any phase ot covered by the previous four colors. Should never occur.
 
 YELLOW: The node the dragon is currently heading to.
+
+ORANGE: The dragon's current target (where it is trying to fly to).

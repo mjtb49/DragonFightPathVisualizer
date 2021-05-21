@@ -12,34 +12,34 @@ import java.util.List;
 public class PathRenderer {
     final static double o = 0.5d;
 
-    final static Color RED = new Color(255,0,0);
-    final static Color GREEN = new Color(0,255,0);
-    final static Color BLUE = new Color(0,0,255);
-    final static Color WHITE = new Color(255,255,255);
-    final static Color YELLOW = new Color(255,255,51);
-    final static Color PURPLE = new Color(153,50,204);
+    //final static Color RED = new Color(255,0,0);
+    //final static Color GREEN = new Color(0,255,0);
+    //final static Color BLUE = new Color(0,0,255);
+    //final static Color WHITE = new Color(255,255,255);
+    //final static Color YELLOW = new Color(255,255,51);
+    //final static Color PURPLE = new Color(153,50,204);
     public static void renderPath(Path path, int phaseId) {
         Color color;
         switch (phaseId) {
             case 0:
                 //holding pattern
-                color = WHITE;
+                color = Color.WHITE;
                 break;
             case 1:
                 //strafing
-                color = RED;
+                color = Color.RED;
                 break;
             case 2:
                 //landing approach
-                color = BLUE;
+                color = Color.BLUE;
                 break;
             case 4:
                 //takeoff
-                color = GREEN;
+                color = Color.GREEN;
                 break;
             default:
                 //should never run
-                color = PURPLE;
+                color = Color.PURPLE;
         }
 
         if (path == null) {
@@ -52,7 +52,7 @@ public class PathRenderer {
                 //System.out.println("Trying to draw a cube at " + node.getPos());
                 Cube cube;
                 if (i == path.getCurrentNodeIndex() - 1)
-                    cube = new Cube(node.getPos(), YELLOW);
+                    cube = new Cube(node.getPos(), Color.YELLOW);
                 else cube = new Cube(node.getPos(), color);
                 cube.render();
             }

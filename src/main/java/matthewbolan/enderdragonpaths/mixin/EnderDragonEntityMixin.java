@@ -42,8 +42,8 @@ public class EnderDragonEntityMixin {
    private int[] pathNodeConnections;
 
    private boolean graphInitialized;
-   private static final Color GRAY = new Color(50,50,50);
-   private static final Color ORANGE = new Color(255,126,0);
+   //private static final Color GRAY = new Color(50,50,50);
+   //private static final Color ORANGE = new Color(255,126,0);
    private static final double o = 0.5;
 
    @Inject(method = "tickMovement()V", at = @At("HEAD"))
@@ -53,7 +53,7 @@ public class EnderDragonEntityMixin {
          int x = (int) target.getX();
          int y = (int) target.getY();
          int z = (int) target.getZ();
-         Cube cube = new Cube(new BlockPos(x,y,z), ORANGE);
+         Cube cube = new Cube(new BlockPos(x,y,z), Color.ORANGE);
          DragonFightDebugger.submitTarget(cube);
       }
    }
@@ -68,7 +68,7 @@ public class EnderDragonEntityMixin {
       if(!graphInitialized) {
          DragonFightDebugger.clearGraph();
          for (int i = 0; i < 24; i++) {
-            Cube coob = new Cube(pathNodes[i].getPos(), GRAY);
+            Cube coob = new Cube(pathNodes[i].getPos(), Color.GRAY);
             for (int j = i; j < 24; j++) {
                if ((pathNodeConnections[i] & (1 << j)) != 0) {
                   if ((pathNodeConnections[j] & (1 << i)) == 0) {
@@ -77,7 +77,7 @@ public class EnderDragonEntityMixin {
                   BlockPos node1 = pathNodes[i].getPos();
                   BlockPos node2 = pathNodes[j].getPos();
                   Line line = new Line(new Vec3d(node1.getX() + o, node1.getY() + o, node1.getZ() + o),
-                          new Vec3d(node2.getX() + o, node2.getY() + o, node2.getZ() + o), GRAY);
+                          new Vec3d(node2.getX() + o, node2.getY() + o, node2.getZ() + o), Color.GRAY);
                   DragonFightDebugger.submitElement(line);
                }
             }
