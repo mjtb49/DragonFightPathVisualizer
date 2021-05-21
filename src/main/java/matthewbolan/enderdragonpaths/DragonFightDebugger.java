@@ -15,8 +15,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class DragonFightDebugger implements ModInitializer {
 
+	private static ConcurrentLinkedQueue<Renderer> TARGETS = new ConcurrentLinkedQueue<>();
 	private static ConcurrentLinkedQueue<Renderer> GRAPHCOMPONENTS =new ConcurrentLinkedQueue<>();
-	private static ConcurrentLinkedQueue<Pair<Path,Integer>> PATHS =new ConcurrentLinkedQueue<Pair<Path,Integer>>();
+	private static ConcurrentLinkedQueue<Pair<Path,Integer>> PATHS =new ConcurrentLinkedQueue<>();
 
 	public static void submitPath(Path path, Phase phase) {
 		PATHS.add(new Pair<>(path, phase.getType().getTypeId()));
@@ -24,6 +25,10 @@ public class DragonFightDebugger implements ModInitializer {
 
 	public static void submitElement(Renderer r) {
 		GRAPHCOMPONENTS.add(r);
+	}
+
+	public static void submitTarget(Renderer r) {
+		TARGETS.add(r);
 	}
 
 	@Override
@@ -38,6 +43,12 @@ public class DragonFightDebugger implements ModInitializer {
 			}
 
 			GlStateManager.disableDepthTest();
+
+			for (Renderer r: TARGETS) {
+				while (TARGETS.size() > 1)
+					TARGETS.remove();
+				r.render();
+			}
 
 			for(Pair<Path,Integer> pair: PATHS) {
 				if (PATHS.size() > 1)
@@ -54,6 +65,7 @@ public class DragonFightDebugger implements ModInitializer {
 	}
 
 	public static void clearAll() {
+		TARGETS.clear();
 		GRAPHCOMPONENTS.clear();
 		PATHS.clear();
 	}

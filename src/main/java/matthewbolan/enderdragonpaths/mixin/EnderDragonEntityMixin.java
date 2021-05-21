@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import net.minecraft.entity.ai.pathing.Path;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import matthewbolan.enderdragonpaths.render.Color;
 import matthewbolan.enderdragonpaths.render.Cube;
@@ -42,7 +43,20 @@ public class EnderDragonEntityMixin {
 
    private boolean graphInitialized;
    private static final Color GRAY = new Color(50,50,50);
+   private static final Color ORANGE = new Color(255,126,0);
    private static final double o = 0.5;
+
+   @Inject(method = "tickMovement()V", at = @At("HEAD"))
+   public void tickMovement(CallbackInfo ci) {
+      Vec3d target = phaseManager.getCurrent().getTarget();
+      if (target != null) {
+         int x = (int) target.getX();
+         int y = (int) target.getY();
+         int z = (int) target.getZ();
+         Cube cube = new Cube(new BlockPos(x,y,z), ORANGE);
+         DragonFightDebugger.submitTarget(cube);
+      }
+   }
 
    @Inject(method = "findPath(IILnet/minecraft/entity/ai/pathing/PathNode;)Lnet/minecraft/entity/ai/pathing/Path;", at = @At("RETURN"))
    public void findPath(int i, int j, PathNode node, CallbackInfoReturnable<Path> ci) {
