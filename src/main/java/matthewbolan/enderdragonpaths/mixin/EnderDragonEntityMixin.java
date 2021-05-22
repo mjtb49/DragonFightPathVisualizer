@@ -5,6 +5,8 @@ import matthewbolan.enderdragonpaths.DragonFightDebugger;
 import matthewbolan.enderdragonpaths.render.Cuboid;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.render.SkyProperties;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.pathing.PathNode;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
@@ -37,7 +39,7 @@ import matthewbolan.enderdragonpaths.render.Line;
 //}
 
 @Mixin(EnderDragonEntity.class)
-public class EnderDragonEntityMixin {
+public abstract class EnderDragonEntityMixin extends LivingEntity {
 
    @Shadow @Final
    private PhaseManager phaseManager;
@@ -51,23 +53,27 @@ public class EnderDragonEntityMixin {
    @Shadow @Final public EnderDragonPart partHead;
    private boolean graphInitialized;
 
-   public World world;
    //private static final Color GRAY = new Color(50,50,50);
    //private static final Color ORANGE = new Color(255,126,0);
    private static final double o = 0.5;
    private Vec3d last = null;
 
+   public EnderDragonEntityMixin(EntityType<? extends EnderDragonEntity> entityType, World world) {
+      super(entityType, world);
+   }
+
    @Inject(method = "tickMovement()V", at = @At("HEAD"))
    public void tickMovement(CallbackInfo ci) {
       Vec3d target = phaseManager.getCurrent().getTarget();
-      if (target != null) {
+      if (target != null && !this.world.isClient()) {
          double x = target.getX();
          double y = target.getY();
          double z = target.getZ();
          Cube cube = new Cube(new BlockPos(x, y, z), Color.ORANGE);
          DragonFightDebugger.submitTarget(cube);
       }
-      if (this.world.isClient()) {
+      if (!this.world.isClient()) {
+         //TODO work out how we want to show server client desync
          double x = this.partHead.getX();
          double y = this.partHead.getEyeY();
          double z = this.partHead.getZ();
