@@ -12,6 +12,7 @@ import net.minecraft.entity.boss.dragon.EnderDragonPart;
 import net.minecraft.entity.boss.dragon.phase.PhaseManager;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -49,6 +50,8 @@ public class EnderDragonEntityMixin {
 
    @Shadow @Final public EnderDragonPart partHead;
    private boolean graphInitialized;
+
+   public World world;
    //private static final Color GRAY = new Color(50,50,50);
    //private static final Color ORANGE = new Color(255,126,0);
    private static final double o = 0.5;
@@ -64,7 +67,7 @@ public class EnderDragonEntityMixin {
          Cube cube = new Cube(new BlockPos(x, y, z), Color.ORANGE);
          DragonFightDebugger.submitTarget(cube);
       }
-      if (target != null) {
+      if (this.world.isClient()) {
          double x = this.partHead.getX();
          double y = this.partHead.getEyeY();
          double z = this.partHead.getZ();
