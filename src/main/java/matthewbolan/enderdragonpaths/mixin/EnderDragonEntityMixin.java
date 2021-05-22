@@ -1,8 +1,14 @@
 package matthewbolan.enderdragonpaths.mixin;
 
+import jdk.nashorn.internal.codegen.CompilerConstants;
 import matthewbolan.enderdragonpaths.DragonFightDebugger;
+import matthewbolan.enderdragonpaths.render.Cuboid;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.pathing.PathNode;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
+import net.minecraft.entity.boss.dragon.EnderDragonPart;
 import net.minecraft.entity.boss.dragon.phase.PhaseManager;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -41,20 +47,32 @@ public class EnderDragonEntityMixin {
    @Shadow @Final
    private int[] pathNodeConnections;
 
+   @Shadow @Final public EnderDragonPart partHead;
    private boolean graphInitialized;
    //private static final Color GRAY = new Color(50,50,50);
    //private static final Color ORANGE = new Color(255,126,0);
    private static final double o = 0.5;
+   private Vec3d last = null;
 
    @Inject(method = "tickMovement()V", at = @At("HEAD"))
    public void tickMovement(CallbackInfo ci) {
       Vec3d target = phaseManager.getCurrent().getTarget();
       if (target != null) {
-         int x = (int) target.getX();
-         int y = (int) target.getY();
-         int z = (int) target.getZ();
-         Cube cube = new Cube(new BlockPos(x,y,z), Color.ORANGE);
+         double x = target.getX();
+         double y = target.getY();
+         double z = target.getZ();
+         Cube cube = new Cube(new BlockPos(x, y, z), Color.ORANGE);
          DragonFightDebugger.submitTarget(cube);
+      }
+      if (target != null) {
+         double x = this.partHead.getX();
+         double y = this.partHead.getEyeY();
+         double z = this.partHead.getZ();
+         Vec3d newPos = new Vec3d(x, y, z);
+         if (last != null) {
+            DragonFightDebugger.submitHeadPosition(new Line(newPos, last, Color.PURPLE));
+         }
+         last = newPos;
       }
    }
 
