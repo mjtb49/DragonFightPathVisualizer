@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameRenderer.class)
-public abstract class GameRendererMixin {
+public abstract class MixinGameRenderer {
 
     @Inject(method = "renderWorld", at = @At("HEAD"))
     private void renderWorldStart(float delta, long time, MatrixStack matrixStack, CallbackInfo ci) {

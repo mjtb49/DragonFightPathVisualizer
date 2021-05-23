@@ -4,12 +4,13 @@
   "package": "matthewbolan.enderdragonpaths.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "CommandManagerMixin",
-    "EnderDragonEntityMixin"
+    "MixinCommandManager",
+    "MixinEnderDragonEntity",
+    "MixinClientPlayNetworkHandler"
   ],
   "client": [
-    "DummyProfilerMixin",
-    "GameRendererMixin",
+    "MixinDummyProfiler",
+    "MixinGameRenderer",
     "MixinClientWorld"
   ],
   "injectors": {

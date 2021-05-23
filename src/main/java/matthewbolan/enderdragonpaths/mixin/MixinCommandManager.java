@@ -30,7 +30,7 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.*;
 
 @Mixin(CommandManager.class)
-public class CommandManagerMixin {
+public class MixinCommandManager {
     @Shadow @Final private CommandDispatcher<ServerCommandSource> dispatcher;
 
     @Inject(method = "<init>(Lnet/minecraft/server/command/CommandManager$RegistrationEnvironment;)V", at = @At("RETURN"))

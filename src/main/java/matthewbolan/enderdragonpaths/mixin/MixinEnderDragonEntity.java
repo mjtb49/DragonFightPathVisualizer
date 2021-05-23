@@ -39,7 +39,7 @@ import matthewbolan.enderdragonpaths.render.Line;
 //}
 
 @Mixin(EnderDragonEntity.class)
-public abstract class EnderDragonEntityMixin extends LivingEntity {
+public abstract class MixinEnderDragonEntity extends LivingEntity {
 
    @Shadow @Final
    private PhaseManager phaseManager;
@@ -58,7 +58,7 @@ public abstract class EnderDragonEntityMixin extends LivingEntity {
    private static final double o = 0.5;
    private Vec3d last = null;
 
-   public EnderDragonEntityMixin(EntityType<? extends EnderDragonEntity> entityType, World world) {
+   public MixinEnderDragonEntity(EntityType<? extends EnderDragonEntity> entityType, World world) {
       super(entityType, world);
    }
 
