@@ -8,9 +8,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class BedDamageSettings {
 
-    private static boolean shouldPrintDamage = false;
+    private static boolean shouldPrintDamage = true;
     private static ConcurrentLinkedQueue<BlockPos> bedPositions = new ConcurrentLinkedQueue<>();
-    private static int damageThreshold = 30;
+    private static int damageThreshold = 5;
 
     public static ConcurrentLinkedQueue<BlockPos> getBedPositions() {
         return bedPositions;
