@@ -17,6 +17,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraft.world.explosion.Explosion;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -93,7 +94,8 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
                   for (EnderDragonPart part : parts) {
                      double y = (MathHelper.sqrt(part.squaredDistanceTo(bedCenter)) / powerTimes2);
                      if (y <= 1.0D) {
-                        double exposure = 1; //Explosion.getExposure(bedCenter, entity);
+                        //TODO compute exposure correctly, currently the bed head blocks the explosion
+                        double exposure = 1; //Explosion.getExposure(bedCenter, part);
                         double ae = (1.0D - y) * exposure;
                         float damage = (float) ((ae * ae + ae) / 2.0D * 7.0D * powerTimes2 + 1.0D);
                         if (part != this.partHead)
@@ -102,7 +104,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
                            maxDamage = damage;
                      }
                   }
-                  if ((int) maxDamage >= 30) {
+                  if ((int) maxDamage >= BedDamageSettings.getDamageThreshold()) {
                      if (bedPositions.size() == 1) {
                         if (MinecraftClient.getInstance().player != null)
                            MinecraftClient.getInstance().player.sendMessage(new LiteralText((int) maxDamage + " damage at time " + this.age).formatted(Formatting.AQUA), false);

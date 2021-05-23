@@ -10,6 +10,7 @@ public class BedDamageSettings {
 
     private static boolean shouldPrintDamage = false;
     private static ConcurrentLinkedQueue<BlockPos> bedPositions = new ConcurrentLinkedQueue<>();
+    private static int damageThreshold = 30;
 
     public static ConcurrentLinkedQueue<BlockPos> getBedPositions() {
         return bedPositions;
@@ -19,12 +20,20 @@ public class BedDamageSettings {
         return shouldPrintDamage;
     }
 
+    public static int getDamageThreshold() {
+        return damageThreshold;
+    }
+
     public static void addBedPosition(BlockPos pos) {
        bedPositions.add(pos);
     }
 
     public static void setShouldPrintDamage(boolean shouldPrintDamage) {
         BedDamageSettings.shouldPrintDamage = shouldPrintDamage;
+    }
+
+    public static void setDamageThreshold(int damageThreshold) {
+        BedDamageSettings.damageThreshold = damageThreshold;
     }
 
     public static void resetBedPositions() {

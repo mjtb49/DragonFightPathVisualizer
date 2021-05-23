@@ -64,6 +64,16 @@ public class DragonFightDebugger implements ModInitializer {
 			}
 			GlStateManager.disableDepthTest();
 
+			if (renderPaths == RenderOption.RENDER_BACK)
+				GlStateManager.enableDepthTest();
+			for(Pair<Path,Integer> pair: PATHS) {
+				if (PATHS.size() > 1)
+					PATHS.remove(pair);
+				if (renderPaths != RenderOption.NONE)
+					PathRenderer.renderPath(pair.getLeft(), pair.getRight());
+			}
+			GlStateManager.disableDepthTest();
+
 			if (renderTargets == RenderOption.RENDER_BACK)
 				GlStateManager.enableDepthTest();
 			for (Renderer r: TARGETS) {
@@ -82,16 +92,6 @@ public class DragonFightDebugger implements ModInitializer {
 				}
 				if (renderTracer !=  RenderOption.NONE)
 					r.render();
-			}
-			GlStateManager.disableDepthTest();
-
-			if (renderPaths == RenderOption.RENDER_BACK)
-				GlStateManager.enableDepthTest();
-			for(Pair<Path,Integer> pair: PATHS) {
-				if (PATHS.size() > 1)
-					PATHS.remove(pair);
-				if (renderPaths != RenderOption.NONE)
-					PathRenderer.renderPath(pair.getLeft(), pair.getRight());
 			}
 			GlStateManager.disableDepthTest();
 

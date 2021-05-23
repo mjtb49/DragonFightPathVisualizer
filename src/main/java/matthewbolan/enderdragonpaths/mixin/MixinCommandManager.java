@@ -3,6 +3,7 @@ package matthewbolan.enderdragonpaths.mixin;
 import com.mojang.brigadier.CommandDispatcher;
 import matthewbolan.enderdragonpaths.commands.PrintBedDamageCommand;
 import matthewbolan.enderdragonpaths.commands.DragonCommand;
+import matthewbolan.enderdragonpaths.commands.SetDamageThresholdCommand;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import org.spongepowered.asm.mixin.Final;
@@ -28,5 +29,6 @@ public class MixinCommandManager {
     public void CommandManager(CommandManager.RegistrationEnvironment environment, CallbackInfo ci) {
         DragonCommand.register(dispatcher);
         PrintBedDamageCommand.register(dispatcher);
+        SetDamageThresholdCommand.register(dispatcher);
     }
 }
