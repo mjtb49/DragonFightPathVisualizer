@@ -4,6 +4,7 @@
   "package": "matthewbolan.enderdragonpaths.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "CommandManagerMixin",
     "EnderDragonEntityMixin"
   ],
   "client": [
