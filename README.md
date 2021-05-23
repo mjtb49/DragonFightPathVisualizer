@@ -14,7 +14,7 @@ BLUE: The path indended by the dragon in a LANDING_APPROACH phase
 
 GREEN: The path intended by the dragon in a TAKEOFF phase
 
-PURPLE: The path intended by the dragon in any phase ot covered by the previous four colors. Should never occur.
+PURPLE: A curve tracing the server side position of the dragon's head over the last 10 seconds. The tip of this curve is where bed hits should be aimed.
 
 YELLOW: The node the dragon is currently heading to.
 
