@@ -19,3 +19,6 @@ PURPLE: A curve tracing the server side position of the dragon's head over the l
 YELLOW: The node the dragon is currently heading to.
 
 ORANGE: The dragon's current target (where it is trying to fly to).
+
+
+The various features can be toggled via the /dragon command.
