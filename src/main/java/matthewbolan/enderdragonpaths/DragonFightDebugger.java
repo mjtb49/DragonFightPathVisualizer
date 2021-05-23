@@ -2,10 +2,11 @@ package matthewbolan.enderdragonpaths;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import matthewbolan.enderdragonpaths.util.BedDamageSettings;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.boss.dragon.phase.Phase;
-import matthewbolan.enderdragonpaths.paths.PathRenderer;
+import matthewbolan.enderdragonpaths.util.PathRenderer;
 import matthewbolan.enderdragonpaths.render.RenderQueue;
 import net.minecraft.util.Pair;
 import matthewbolan.enderdragonpaths.render.Renderer;
@@ -134,5 +135,6 @@ public class DragonFightDebugger implements ModInitializer {
 		GRAPHCOMPONENTS.clear();
 		PATHS.clear();
 		DRAGON_HEAD_SPOTS.clear();
+		BedDamageSettings.resetBedPositions();
 	}
 }

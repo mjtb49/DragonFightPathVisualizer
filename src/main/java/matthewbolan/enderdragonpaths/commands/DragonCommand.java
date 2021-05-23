@@ -51,7 +51,6 @@ public class DragonCommand {
                         ).then(
                             argument("ticks", integer())
                                     .executes(c -> {
-                                        //TODO
                                                 DragonFightDebugger.setTracerRenderOptions(getInteger(c, "ticks"));
                                                 return 1;
                                             }

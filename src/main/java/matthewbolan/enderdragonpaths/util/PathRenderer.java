@@ -1,4 +1,4 @@
-package matthewbolan.enderdragonpaths.paths;
+package matthewbolan.enderdragonpaths.util;
 
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.ai.pathing.PathNode;
