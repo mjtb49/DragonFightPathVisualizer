@@ -1,6 +1,7 @@
 # DragonFightPathVisualizer
 
-This is a fabric mod for Minecraft Java 1.16.x. Its purpose is to aid the development of dragon fight strategies for 1.16 speedrunning.
+This is a fabric mod for Minecraft Java 1.16.x. Its purpose is to aid the development of dragon fight strategies for 1.16 speedrunning. 
+The various features can be toggled via the /dragon command.
 
 The mod shows the following things with the following colors:
 
@@ -19,6 +20,3 @@ PURPLE: A curve tracing the server side position of the dragon's head over the l
 YELLOW: The node the dragon is currently heading to.
 
 ORANGE: The dragon's current target (where it is trying to fly to).
-
-
-The various features can be toggled via the /dragon command.
