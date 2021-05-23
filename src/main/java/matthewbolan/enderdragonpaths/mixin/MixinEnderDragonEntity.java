@@ -53,6 +53,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
 
    private static final double o = 0.5;
    private static Vec3d last = null;
+   private static float health = 200.0f;
 
    public MixinEnderDragonEntity(EntityType<? extends EnderDragonEntity> entityType, World world) {
       super(entityType, world);
@@ -60,6 +61,13 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
 
    @Inject(method = "tickMovement()V", at = @At("TAIL"))
    public void tickMovement(CallbackInfo ci) {
+      if (health > this.getHealth()) {
+         float damage = health - this.getHealth();
+         health = this.getHealth();
+         if (MinecraftClient.getInstance().player != null)
+            MinecraftClient.getInstance().player.sendMessage(new LiteralText("Dragon took " + damage + " damage").formatted(Formatting.RED), false);
+      }
+
       Vec3d target = phaseManager.getCurrent().getTarget();
       if (target != null && !this.world.isClient()) {
          double x = target.getX();
