@@ -52,8 +52,8 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
    private boolean graphInitialized;
 
    private static final double o = 0.5;
-   private static Vec3d last = null;
-   private static float health = 200.0f;
+   private Vec3d last = null;
+   private float health = 200.0f;
 
    public MixinEnderDragonEntity(EntityType<? extends EnderDragonEntity> entityType, World world) {
       super(entityType, world);
@@ -61,12 +61,12 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
 
    @Inject(method = "tickMovement()V", at = @At("TAIL"))
    public void tickMovement(CallbackInfo ci) {
-      if (health > this.getHealth()) {
+      if (health > this.getHealth() && !this.world.isClient()) {
          float damage = health - this.getHealth();
-         health = this.getHealth();
          if (MinecraftClient.getInstance().player != null)
             MinecraftClient.getInstance().player.sendMessage(new LiteralText("Dragon took " + damage + " damage").formatted(Formatting.RED), false);
       }
+      health = this.getHealth();
 
       Vec3d target = phaseManager.getCurrent().getTarget();
       if (target != null && !this.world.isClient()) {
@@ -107,7 +107,9 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
                         double ae = (1.0D - y) * exposure;
                         float damage = (float) ((ae * ae + ae) / 2.0D * 7.0D * powerTimes2 + 1.0D);
                         if (part != this.partHead)
-                           damage = damage / 4 + Math.min(damage, 1.0F);
+                           damage = ((int) damage) / 4.0F + Math.min(damage, 1.0F);
+                        else
+                           damage = (float)(int) damage;
                         if (damage > maxDamage)
                            maxDamage = damage;
                      }
@@ -115,10 +117,10 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
                   if ((int) maxDamage >= BedDamageSettings.getDamageThreshold()) {
                      if (bedPositions.size() == 1) {
                         if (MinecraftClient.getInstance().player != null)
-                           MinecraftClient.getInstance().player.sendMessage(new LiteralText((int) maxDamage + " damage at time " + this.age).formatted(Formatting.AQUA), false);
+                           MinecraftClient.getInstance().player.sendMessage(new LiteralText(maxDamage + " damage at time " + this.age).formatted(Formatting.AQUA), false);
                      } else {
                         if (MinecraftClient.getInstance().player != null)
-                           MinecraftClient.getInstance().player.sendMessage(new LiteralText((int) maxDamage + " damage at time " + this.age + " from " + bedPos.getX() + " " + bedPos.getY() + " " + bedPos.getZ()).formatted(Formatting.AQUA), false);
+                           MinecraftClient.getInstance().player.sendMessage(new LiteralText(maxDamage + " damage at time " + this.age + " from " + bedPos.getX() + " " + bedPos.getY() + " " + bedPos.getZ()).formatted(Formatting.AQUA), false);
                      }
                   }
                }
