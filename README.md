@@ -22,6 +22,7 @@ ORANGE: The dragon's current target (where it is trying to fly to).
 
 
 The mod also includes a few commands:
+
 /dragon allows the user to choose how each of the elements are rendered, or turn them off.
 
 /printBedDamage lets the user choose whether the mod prints theoretical bed damage amounts for player placed beds in the end (default true).
