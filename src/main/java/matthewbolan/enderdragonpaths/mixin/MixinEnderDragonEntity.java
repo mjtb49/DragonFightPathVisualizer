@@ -17,7 +17,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.minecraft.world.explosion.Explosion;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -51,9 +50,9 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
 
    private boolean graphInitialized;
 
-   private static final double o = 0.5;
    private Vec3d last = null;
-   private float health = 200.0f;
+   private float lastHealth = 200.0f;
+   private double lastYPos = 0.0f;
 
    public MixinEnderDragonEntity(EntityType<? extends EnderDragonEntity> entityType, World world) {
       super(entityType, world);
@@ -61,12 +60,12 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
 
    @Inject(method = "tickMovement()V", at = @At("TAIL"))
    public void tickMovement(CallbackInfo ci) {
-      if (health > this.getHealth() && !this.world.isClient()) {
-         float damage = health - this.getHealth();
+      if (lastHealth > this.getHealth() && !this.world.isClient()) {
+         float damage = lastHealth - this.getHealth();
          if (MinecraftClient.getInstance().player != null)
             MinecraftClient.getInstance().player.sendMessage(new LiteralText("Dragon took " + damage + " damage").formatted(Formatting.RED), false);
       }
-      health = this.getHealth();
+      lastHealth = this.getHealth();
 
       Vec3d target = phaseManager.getCurrent().getTarget();
       if (target != null && !this.world.isClient()) {
@@ -89,7 +88,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
       }
 
       ConcurrentLinkedQueue<BlockPos> bedPositions = BedDamageSettings.getBedPositions();
-      if (!this.world.isClient())
+      if (!this.world.isClient()) {
          for (BlockPos bedPos : bedPositions) {
             if (!(this.world.getBlockState(bedPos).getBlock() instanceof BedBlock)) {
                bedPositions.remove(bedPos);
@@ -109,7 +108,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
                         if (part != this.partHead)
                            damage = ((int) damage) / 4.0F + Math.min(damage, 1.0F);
                         else
-                           damage = (float)(int) damage;
+                           damage = (float) (int) damage;
                         if (damage > maxDamage)
                            maxDamage = damage;
                      }
@@ -126,6 +125,15 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
                }
             }
          }
+      }
+
+      //if (!this.world.isClient()) {
+      //   if (this.getVelocity() != null  && MinecraftClient.getInstance().player != null) {
+      //      MinecraftClient.getInstance().player.sendMessage(new LiteralText("Velocity internal " + this.getVelocity().getY() + " at time " + this.age).formatted(Formatting.LIGHT_PURPLE), false);
+      //      MinecraftClient.getInstance().player.sendMessage(new LiteralText("Position Delta " + (this.getY() - this.lastYPos) + " at time " + this.age).formatted(Formatting.GREEN), false);
+      //      this.lastYPos = this.getY();
+      //   }
+      //}
    }
 
    @Inject(method = "findPath(IILnet/minecraft/entity/ai/pathing/PathNode;)Lnet/minecraft/entity/ai/pathing/Path;", at = @At("RETURN"))
@@ -137,6 +145,8 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
    public void getNearestPathNodeIndex(CallbackInfoReturnable<Integer> cir) {
       if(!graphInitialized) {
          DragonFightDebugger.clearGraph();
+
+         //Render base graph
          for (int i = 0; i < 24; i++) {
             Cube coob = new Cube(pathNodes[i].getPos(), Color.GRAY);
             for (int j = i; j < 24; j++) {
@@ -144,17 +154,53 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
                   if ((pathNodeConnections[j] & (1 << i)) == 0) {
                      System.err.println("graph is actually a digraph!");
                   }
-                  BlockPos node1 = pathNodes[i].getPos();
-                  BlockPos node2 = pathNodes[j].getPos();
-                  Line line = new Line(new Vec3d(node1.getX() + o, node1.getY() + o, node1.getZ() + o),
-                          new Vec3d(node2.getX() + o, node2.getY() + o, node2.getZ() + o), Color.GRAY);
+                  Line line = new Line(Vec3d.ofCenter(pathNodes[i].getPos()), Vec3d.ofCenter(pathNodes[j].getPos()), Color.GRAY);
                   DragonFightDebugger.submitElement(line);
                }
             }
             DragonFightDebugger.submitElement(coob);
          }
+
+         //Render possible node paths
+         //for (int j = 12; j < 20; j+=4) {
+         //int j = 12; //EAST = 12, //WEST = 16
+         //int k;
+         //Cube coob = new Cube(pathNodes[j].getPos(), Color.PURPLE);
+         //k = getDestinationIndex(j, true, true);
+         //Line line1 = new Line(Vec3d.ofCenter(pathNodes[j].getPos()), Vec3d.ofCenter(pathNodes[k].getPos()), Color.PURPLE);
+         //k = getDestinationIndex(j, true, false);
+         //Line line2 = new Line(Vec3d.ofCenter(pathNodes[j].getPos()), Vec3d.ofCenter(pathNodes[k].getPos()), Color.ORANGE);
+         //k = getDestinationIndex(j, false, true);
+         //Line line3 = new Line(Vec3d.ofCenter(pathNodes[j].getPos()), Vec3d.ofCenter(pathNodes[k].getPos()), Color.GREEN);
+         //k = getDestinationIndex(j, false, false);
+         //Line line4 = new Line(Vec3d.ofCenter(pathNodes[j].getPos()), Vec3d.ofCenter(pathNodes[k].getPos()), Color.YELLOW);
+         //DragonFightDebugger.submitElement(line1);
+         //DragonFightDebugger.submitElement(line2);
+         //DragonFightDebugger.submitElement(line3);
+         //DragonFightDebugger.submitElement(line4);
+         //DragonFightDebugger.submitElement(coob);
+         //}
+
       }
       graphInitialized = true;
    }
 
+   private int getDestinationIndex(int j, boolean clockwise, boolean swapDirections) {
+      int k = j;
+      if (swapDirections) {
+         clockwise = !clockwise;
+         k = j + 6;
+      }
+
+      if (clockwise) {
+         ++k;
+      } else {
+         --k;
+      }
+      k %= 12;
+      if (k < 0) {
+         k += 12;
+      }
+      return k;
+   }
 }

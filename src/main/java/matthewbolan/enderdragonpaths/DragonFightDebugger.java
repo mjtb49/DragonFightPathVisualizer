@@ -2,49 +2,38 @@ package matthewbolan.enderdragonpaths;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import matthewbolan.enderdragonpaths.render.Cube;
+import matthewbolan.enderdragonpaths.render.Line;
 import matthewbolan.enderdragonpaths.util.BedDamageSettings;
+import matthewbolan.enderdragonpaths.render.RendererGroup;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.boss.dragon.phase.Phase;
-import matthewbolan.enderdragonpaths.util.PathRenderer;
+import matthewbolan.enderdragonpaths.render.PathRenderer;
 import matthewbolan.enderdragonpaths.render.RenderQueue;
-import net.minecraft.util.Pair;
 import matthewbolan.enderdragonpaths.render.Renderer;
-
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class DragonFightDebugger implements ModInitializer {
 
-	private static ConcurrentLinkedQueue<Renderer> TARGETS = new ConcurrentLinkedQueue<>();
-	private static ConcurrentLinkedQueue<Renderer> DRAGON_HEAD_SPOTS = new ConcurrentLinkedQueue<>();
-	private static ConcurrentLinkedQueue<Renderer> GRAPHCOMPONENTS = new ConcurrentLinkedQueue<>();
-	private static ConcurrentLinkedQueue<Pair<Path,Integer>> PATHS = new ConcurrentLinkedQueue<>();
-	private static int tracerTicks = 200;
-	private static RenderOption renderTracer = RenderOption.RENDER_FRONT;
-	private static RenderOption renderPaths = RenderOption.RENDER_FRONT;
-	private static RenderOption renderTargets = RenderOption.RENDER_FRONT;
-	private static RenderOption renderGraph = RenderOption.RENDER_BACK;
+	private static final RendererGroup<Cube> TARGETS = new RendererGroup<>(1, RendererGroup.RenderOption.RENDER_FRONT);
+	private static final RendererGroup<Line> DRAGON_HEAD_SPOTS = new RendererGroup<>(200, RendererGroup.RenderOption.RENDER_FRONT);
+	private static final RendererGroup<Renderer> GRAPH_COMPONENTS = new RendererGroup<>(300, RendererGroup.RenderOption.RENDER_BACK);
+	private static final RendererGroup<PathRenderer> PATHS = new RendererGroup<>(1, RendererGroup.RenderOption.RENDER_FRONT);
 
 	public static void submitPath(Path path, Phase phase) {
-		PATHS.add(new Pair<>(path, phase.getType().getTypeId()));
+		PATHS.addRenderer(new PathRenderer(path, phase.getType().getTypeId()));
 	}
 
 	public static void submitElement(Renderer r) {
-		GRAPHCOMPONENTS.add(r);
+		GRAPH_COMPONENTS.addRenderer(r);
 	}
 
-	public static void submitTarget(Renderer r) {
-		TARGETS.add(r);
+	public static void submitTarget(Cube r) {
+		TARGETS.addRenderer(r);
 	}
 
-	public static void submitHeadPosition(Renderer r) {
-		DRAGON_HEAD_SPOTS.add(r);
-	}
-
-	public enum RenderOption {
-		RENDER_FRONT,
-		RENDER_BACK,
-		NONE
+	public static void submitHeadPosition(Line r) {
+		DRAGON_HEAD_SPOTS.addRenderer(r);
 	}
 
 	@Override
@@ -55,44 +44,11 @@ public class DragonFightDebugger implements ModInitializer {
 			GlStateManager.disableTexture();
 			GlStateManager.disableDepthTest();
 
-			if (renderGraph != RenderOption.NONE) {
-				if (renderGraph == RenderOption.RENDER_BACK)
-					GlStateManager.enableDepthTest();
-				for (Renderer r : GRAPHCOMPONENTS) {
-					r.render();
-				}
-			}
-			GlStateManager.disableDepthTest();
+			GRAPH_COMPONENTS.render();
+			PATHS.render();
+			TARGETS.render();
+			DRAGON_HEAD_SPOTS.render();
 
-			if (renderPaths == RenderOption.RENDER_BACK)
-				GlStateManager.enableDepthTest();
-			for(Pair<Path,Integer> pair: PATHS) {
-				if (PATHS.size() > 1)
-					PATHS.remove(pair);
-				if (renderPaths != RenderOption.NONE)
-					PathRenderer.renderPath(pair.getLeft(), pair.getRight());
-			}
-			GlStateManager.disableDepthTest();
-
-			if (renderTargets == RenderOption.RENDER_BACK)
-				GlStateManager.enableDepthTest();
-			for (Renderer r: TARGETS) {
-				while (TARGETS.size() > 1)
-					TARGETS.remove();
-				if (renderTargets != RenderOption.NONE)
-					r.render();
-			}
-			GlStateManager.disableDepthTest();
-
-			if (renderTracer == RenderOption.RENDER_BACK)
-				GlStateManager.enableDepthTest();
-			for (Renderer r: DRAGON_HEAD_SPOTS) {
-				while (tracerTicks >= 0 && DRAGON_HEAD_SPOTS.size() > tracerTicks) {
-					DRAGON_HEAD_SPOTS.remove();
-				}
-				if (renderTracer !=  RenderOption.NONE)
-					r.render();
-			}
 			GlStateManager.disableDepthTest();
 
 			RenderSystem.popMatrix();
@@ -100,39 +56,38 @@ public class DragonFightDebugger implements ModInitializer {
 		});
 	}
 
-	public static void setTracerRenderOptions(RenderOption option, int ticks) {
-		renderTracer = option;
-		if (option != RenderOption.NONE)
-			tracerTicks = ticks;
+	public static void setTracerRenderOptions(RendererGroup.RenderOption option, int ticks) {
+		DRAGON_HEAD_SPOTS.setRenderOption(option);
+		DRAGON_HEAD_SPOTS.setSizeCap(ticks);
 	}
 
-	public static void setTracerRenderOptions(RenderOption option) {
-		renderTracer = option;
+	public static void setTracerRenderOptions(RendererGroup.RenderOption option) {
+		DRAGON_HEAD_SPOTS.setRenderOption(option);
 	}
 
 	public static void setTracerRenderOptions(int ticks) {
-		tracerTicks = ticks;
+		DRAGON_HEAD_SPOTS.setSizeCap(ticks);
 	}
 
-	public static void setPathRenderOption(RenderOption option) {
-		renderPaths = option;
+	public static void setPathRenderOption(RendererGroup.RenderOption option) {
+		PATHS.setRenderOption(option);
 	}
 
-	public static void setGraphRenderOption(RenderOption option) {
-		renderGraph = option;
+	public static void setGraphRenderOption(RendererGroup.RenderOption option) {
+		GRAPH_COMPONENTS.setRenderOption(option);
 	}
 
-	public static void setTargetRenderOption(RenderOption option) {
-		renderTargets = option;
+	public static void setTargetRenderOption(RendererGroup.RenderOption option) {
+		TARGETS.setRenderOption(option);
 	}
 
 	public static void clearGraph() {
-		GRAPHCOMPONENTS.clear();
+		GRAPH_COMPONENTS.clear();
 	}
 
 	public static void clearAll() {
 		TARGETS.clear();
-		GRAPHCOMPONENTS.clear();
+		GRAPH_COMPONENTS.clear();
 		PATHS.clear();
 		DRAGON_HEAD_SPOTS.clear();
 		BedDamageSettings.resetBedPositions();

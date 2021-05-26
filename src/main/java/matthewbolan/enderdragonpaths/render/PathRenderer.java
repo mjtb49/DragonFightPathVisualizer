@@ -1,16 +1,36 @@
-package matthewbolan.enderdragonpaths.util;
+package matthewbolan.enderdragonpaths.render;
 
+import matthewbolan.enderdragonpaths.render.Renderer;
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.ai.pathing.PathNode;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import matthewbolan.enderdragonpaths.render.Color;
 import matthewbolan.enderdragonpaths.render.Cube;
 import matthewbolan.enderdragonpaths.render.Line;
 
+import java.lang.annotation.Documented;
 import java.util.List;
 
-public class PathRenderer {
+public class PathRenderer extends Renderer {
     final static double o = 0.5d;
+    private final Path path;
+    private final int phaseId;
+
+    public PathRenderer(Path path, int phaseId) {
+        this.path = path;
+        this.phaseId = phaseId;
+    }
+
+    @Override
+    public void render() {
+        render(this.path, this.phaseId);
+    }
+
+    @Override
+    public BlockPos getPos() {
+        return path.getTarget();
+    }
 
     //final static Color RED = new Color(255,0,0);
     //final static Color GREEN = new Color(0,255,0);
@@ -18,7 +38,7 @@ public class PathRenderer {
     //final static Color WHITE = new Color(255,255,255);
     //final static Color YELLOW = new Color(255,255,51);
     //final static Color PURPLE = new Color(153,50,204);
-    public static void renderPath(Path path, int phaseId) {
+    public static void render(Path path, int phaseId) {
         Color color;
         switch (phaseId) {
             case 0:

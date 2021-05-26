@@ -2,6 +2,7 @@ package matthewbolan.enderdragonpaths.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import matthewbolan.enderdragonpaths.DragonFightDebugger;
+import matthewbolan.enderdragonpaths.render.RendererGroup;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
@@ -20,12 +21,12 @@ public class DragonCommand {
                             literal("front").then(
                                     argument("ticks", integer())
                                             .executes(c -> {
-                                                        DragonFightDebugger.setTracerRenderOptions(DragonFightDebugger.RenderOption.RENDER_FRONT, getInteger(c, "ticks"));
+                                                        DragonFightDebugger.setTracerRenderOptions(RendererGroup.RenderOption.RENDER_FRONT, getInteger(c, "ticks"));
                                                         return 1;
                                                     }
                                             )
                             ).executes(c -> {
-                                        DragonFightDebugger.setTracerRenderOptions(DragonFightDebugger.RenderOption.RENDER_FRONT);
+                                        DragonFightDebugger.setTracerRenderOptions(RendererGroup.RenderOption.RENDER_FRONT);
                                         return 1;
                                     }
                             )
@@ -33,18 +34,18 @@ public class DragonCommand {
                             literal("back").then(
                                     argument("ticks", integer())
                                             .executes(c -> {
-                                                        DragonFightDebugger.setTracerRenderOptions(DragonFightDebugger.RenderOption.RENDER_BACK, getInteger(c, "ticks"));
+                                                        DragonFightDebugger.setTracerRenderOptions(RendererGroup.RenderOption.RENDER_BACK, getInteger(c, "ticks"));
                                                         return 1;
                                                     }
                                             )
                             ).executes(c -> {
-                                        DragonFightDebugger.setTracerRenderOptions(DragonFightDebugger.RenderOption.RENDER_BACK);
+                                        DragonFightDebugger.setTracerRenderOptions(RendererGroup.RenderOption.RENDER_BACK);
                                         return 1;
                                     }
                             )
                         ).then(
                             literal("none").executes(c -> {
-                                    DragonFightDebugger.setTracerRenderOptions(DragonFightDebugger.RenderOption.NONE, 0);
+                                    DragonFightDebugger.setTracerRenderOptions(RendererGroup.RenderOption.NONE, 0);
                                     return 1;
                                 }
                             )
@@ -59,20 +60,20 @@ public class DragonCommand {
                 ).then(
                     literal("graph").then(
                             literal("front").executes(c -> {
-                                        DragonFightDebugger.setGraphRenderOption(DragonFightDebugger.RenderOption.RENDER_FRONT);
+                                        DragonFightDebugger.setGraphRenderOption(RendererGroup.RenderOption.RENDER_FRONT);
                                         return 1;
                                     }
                             )
                         )
                         .then(
                                 literal("back").executes(c -> {
-                                            DragonFightDebugger.setGraphRenderOption(DragonFightDebugger.RenderOption.RENDER_BACK);
+                                            DragonFightDebugger.setGraphRenderOption(RendererGroup.RenderOption.RENDER_BACK);
                                             return 1;
                                         }
                                 )
                         ).then(
                             literal("none").executes(c -> {
-                                        DragonFightDebugger.setGraphRenderOption(DragonFightDebugger.RenderOption.NONE);
+                                        DragonFightDebugger.setGraphRenderOption(RendererGroup.RenderOption.NONE);
                                         return 1;
                                     }
                             )
@@ -80,20 +81,20 @@ public class DragonCommand {
                 ).then(
                     literal("path").then(
                             literal("front").executes(c -> {
-                                DragonFightDebugger.setPathRenderOption(DragonFightDebugger.RenderOption.RENDER_FRONT);
+                                DragonFightDebugger.setPathRenderOption(RendererGroup.RenderOption.RENDER_FRONT);
                                 return 1;
                             }
                         )
                     )
                             .then(
                                     literal("back").executes(c -> {
-                                                DragonFightDebugger.setPathRenderOption(DragonFightDebugger.RenderOption.RENDER_BACK);
+                                                DragonFightDebugger.setPathRenderOption(RendererGroup.RenderOption.RENDER_BACK);
                                                 return 1;
                                             }
 
                                     )).then(
                             literal("none").executes(c -> {
-                                        DragonFightDebugger.setPathRenderOption(DragonFightDebugger.RenderOption.NONE);
+                                        DragonFightDebugger.setPathRenderOption(RendererGroup.RenderOption.NONE);
                                         return 1;
                                     }
                             )
@@ -101,20 +102,20 @@ public class DragonCommand {
             ).then(
                     literal("target").then(
                             literal("front").executes(c -> {
-                                        DragonFightDebugger.setTargetRenderOption(DragonFightDebugger.RenderOption.RENDER_FRONT);
+                                        DragonFightDebugger.setTargetRenderOption(RendererGroup.RenderOption.RENDER_FRONT);
                                         return 1;
                                     }
                             )
                     )
                             .then(
                                     literal("back").executes(c -> {
-                                                DragonFightDebugger.setTargetRenderOption(DragonFightDebugger.RenderOption.RENDER_BACK);
+                                                DragonFightDebugger.setTargetRenderOption(RendererGroup.RenderOption.RENDER_BACK);
                                                 return 1;
                                             }
                                     )
                             ).then(
                             literal("none").executes(c -> {
-                                        DragonFightDebugger.setTargetRenderOption(DragonFightDebugger.RenderOption.NONE);
+                                        DragonFightDebugger.setTargetRenderOption(RendererGroup.RenderOption.NONE);
                                         return 1;
                                     }
                             )
@@ -128,10 +129,10 @@ public class DragonCommand {
                     })
             ).then(
                     literal("restoreDefaults").executes(c -> {
-                        DragonFightDebugger.setTargetRenderOption(DragonFightDebugger.RenderOption.RENDER_FRONT);
-                        DragonFightDebugger.setPathRenderOption(DragonFightDebugger.RenderOption.RENDER_FRONT);
-                        DragonFightDebugger.setGraphRenderOption(DragonFightDebugger.RenderOption.RENDER_BACK);
-                        DragonFightDebugger.setTracerRenderOptions(DragonFightDebugger.RenderOption.RENDER_FRONT, 200);
+                        DragonFightDebugger.setTargetRenderOption(RendererGroup.RenderOption.RENDER_FRONT);
+                        DragonFightDebugger.setPathRenderOption(RendererGroup.RenderOption.RENDER_FRONT);
+                        DragonFightDebugger.setGraphRenderOption(RendererGroup.RenderOption.RENDER_BACK);
+                        DragonFightDebugger.setTracerRenderOptions(RendererGroup.RenderOption.RENDER_FRONT, 200);
                         return 1;
                     })
             )
