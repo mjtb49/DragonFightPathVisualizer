@@ -4,7 +4,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import matthewbolan.enderdragonpaths.render.Cube;
 import matthewbolan.enderdragonpaths.render.Line;
-import matthewbolan.enderdragonpaths.util.BedDamageSettings;
+import matthewbolan.enderdragonpaths.util.BedTracker;
 import matthewbolan.enderdragonpaths.render.RendererGroup;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.entity.ai.pathing.Path;
@@ -90,6 +90,6 @@ public class DragonFightDebugger implements ModInitializer {
 		GRAPH_COMPONENTS.clear();
 		PATHS.clear();
 		DRAGON_HEAD_SPOTS.clear();
-		BedDamageSettings.resetBedPositions();
+		BedTracker.resetBedPositions();
 	}
 }

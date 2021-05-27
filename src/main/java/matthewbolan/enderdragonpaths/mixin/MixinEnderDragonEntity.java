@@ -1,9 +1,9 @@
 package matthewbolan.enderdragonpaths.mixin;
 
 import matthewbolan.enderdragonpaths.DragonFightDebugger;
-import matthewbolan.enderdragonpaths.util.BedDamageSettings;
+import matthewbolan.enderdragonpaths.util.BedTracker;
+import matthewbolan.enderdragonpaths.util.DragonTracker;
 import net.minecraft.block.*;
-import net.minecraft.block.enums.BedPart;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -15,7 +15,6 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -31,7 +30,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import matthewbolan.enderdragonpaths.render.Color;
 import matthewbolan.enderdragonpaths.render.Cube;
 import matthewbolan.enderdragonpaths.render.Line;
-import sun.net.ProgressSource;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -91,13 +89,13 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
          last = newPos;
       }
 
-      ConcurrentLinkedQueue<BlockPos> bedPositions = BedDamageSettings.getBedPositions();
+      ConcurrentLinkedQueue<BlockPos> bedPositions = BedTracker.getBedPositions();
       if (!this.world.isClient()) {
          for (BlockPos bedPos : bedPositions) {
             if (!(this.world.getBlockState(bedPos).getBlock() instanceof BedBlock)) {
                bedPositions.remove(bedPos);
             } else {
-               boolean printDamage = BedDamageSettings.shouldPrintDamage();
+               boolean printDamage = BedTracker.shouldPrintDamage();
                if (bedPos != null && printDamage) {
                   Vec3d bedCenter = Vec3d.ofCenter(bedPos);
                   double powerTimes2 = 2.0 * 5.0;
@@ -136,7 +134,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
                         }
                      }
                   }
-                  if ((int) maxDamage >= BedDamageSettings.getDamageThreshold()) {
+                  if ((int) maxDamage >= BedTracker.getDamageThreshold()) {
                      if (bedPositions.size() == 1) {
                         if (MinecraftClient.getInstance().player != null)
                            MinecraftClient.getInstance().player.sendMessage(new LiteralText(maxDamage + " damage (" + (maxUnexposedDamage - maxDamage) + " blocked) at time " + this.age).formatted(Formatting.AQUA), false);
@@ -150,13 +148,13 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
          }
       }
 
-     //if (!this.world.isClient()) {
-     //   if (this.getVelocity() != null  && MinecraftClient.getInstance().player != null) {
-     //      //MinecraftClient.getInstance().player.sendMessage(new LiteralText("Velocity internal " + this.getVelocity().getY() + " at time " + this.age).formatted(Formatting.LIGHT_PURPLE), false);
-     //      MinecraftClient.getInstance().player.sendMessage(new LiteralText("Position Delta " + (this.getY() - this.lastYPos) + " at time " + this.age).formatted(Formatting.GREEN), false);
-     //      this.lastYPos = this.getY();
-     //   }
-     //}
+     if (DragonTracker.shouldPrintYDelta() && !this.world.isClient()) {
+        if (this.getVelocity() != null  && MinecraftClient.getInstance().player != null) {
+           //MinecraftClient.getInstance().player.sendMessage(new LiteralText("Velocity internal " + this.getVelocity().getY() + " at time " + this.age).formatted(Formatting.LIGHT_PURPLE), false);
+           MinecraftClient.getInstance().player.sendMessage(new LiteralText("Position Delta " + (this.getY() - this.lastYPos) + " at time " + this.age).formatted(Formatting.GREEN), false);
+           this.lastYPos = this.getY();
+        }
+     }
    }
 
    @Inject(method = "findPath(IILnet/minecraft/entity/ai/pathing/PathNode;)Lnet/minecraft/entity/ai/pathing/Path;", at = @At("RETURN"))

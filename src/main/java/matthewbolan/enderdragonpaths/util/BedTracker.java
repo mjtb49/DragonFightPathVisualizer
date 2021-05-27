@@ -1,12 +1,10 @@
 package matthewbolan.enderdragonpaths.util;
 
-import net.minecraft.block.BedBlock;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class BedDamageSettings {
+public class BedTracker {
 
     private static boolean shouldPrintDamage = true;
     private static ConcurrentLinkedQueue<BlockPos> bedPositions = new ConcurrentLinkedQueue<>();
@@ -29,11 +27,11 @@ public class BedDamageSettings {
     }
 
     public static void setShouldPrintDamage(boolean shouldPrintDamage) {
-        BedDamageSettings.shouldPrintDamage = shouldPrintDamage;
+        BedTracker.shouldPrintDamage = shouldPrintDamage;
     }
 
     public static void setDamageThreshold(int damageThreshold) {
-        BedDamageSettings.damageThreshold = damageThreshold;
+        BedTracker.damageThreshold = damageThreshold;
     }
 
     public static void resetBedPositions() {
