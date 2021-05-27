@@ -2,7 +2,8 @@ package matthewbolan.enderdragonpaths.mixin;
 
 import matthewbolan.enderdragonpaths.DragonFightDebugger;
 import matthewbolan.enderdragonpaths.util.BedDamageSettings;
-import net.minecraft.block.BedBlock;
+import net.minecraft.block.*;
+import net.minecraft.block.enums.BedPart;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -14,9 +15,11 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraft.world.explosion.Explosion;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -28,6 +31,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import matthewbolan.enderdragonpaths.render.Color;
 import matthewbolan.enderdragonpaths.render.Cube;
 import matthewbolan.enderdragonpaths.render.Line;
+import sun.net.ProgressSource;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -98,28 +102,47 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
                   Vec3d bedCenter = Vec3d.ofCenter(bedPos);
                   double powerTimes2 = 2.0 * 5.0;
                   float maxDamage = 0;
+                  double maxUnexposedDamage = 0;
                   for (EnderDragonPart part : parts) {
                      double y = (MathHelper.sqrt(part.squaredDistanceTo(bedCenter)) / powerTimes2);
                      if (y <= 1.0D) {
-                        //TODO compute exposure correctly, currently the bed head blocks the explosion
-                        double exposure = 1; //Explosion.getExposure(bedCenter, part);
+                        //removing and re-adding beds for exposure calculation
+                        BlockPos foot = getFoot(bedPos);
+                        BlockState headState = world.getBlockState(bedPos);
+                        BlockState footState = world.getBlockState(foot);
+                        world.setBlockState(bedPos, Blocks.AIR.getDefaultState(), 16 + 128);
+                        world.setBlockState(foot, Blocks.AIR.getDefaultState(), 16 + 128);
+                        double exposure = Explosion.getExposure(bedCenter, part);
+                        world.setBlockState(bedPos, headState, 16 + 128);
+                        world.setBlockState(foot, footState, 16 + 128);
+
                         double ae = (1.0D - y) * exposure;
                         float damage = (float) ((ae * ae + ae) / 2.0D * 7.0D * powerTimes2 + 1.0D);
                         if (part != this.partHead)
                            damage = ((int) damage) / 4.0F + Math.min(damage, 1.0F);
                         else
                            damage = (float) (int) damage;
-                        if (damage > maxDamage)
+
+                        ae = (1.0D - y);
+                        float unexposedDamage = (float) ((ae * ae + ae) / 2.0D * 7.0D * powerTimes2 + 1.0D);
+                        if (part != this.partHead)
+                           unexposedDamage = ((int) unexposedDamage) / 4.0F + Math.min(unexposedDamage, 1.0F);
+                        else
+                           unexposedDamage = (float) (int) unexposedDamage;
+
+                        if (damage > maxDamage) {
                            maxDamage = damage;
+                           maxUnexposedDamage = unexposedDamage;
+                        }
                      }
                   }
                   if ((int) maxDamage >= BedDamageSettings.getDamageThreshold()) {
                      if (bedPositions.size() == 1) {
                         if (MinecraftClient.getInstance().player != null)
-                           MinecraftClient.getInstance().player.sendMessage(new LiteralText(maxDamage + " damage at time " + this.age).formatted(Formatting.AQUA), false);
+                           MinecraftClient.getInstance().player.sendMessage(new LiteralText(maxDamage + " damage (" + (maxUnexposedDamage - maxDamage) + " blocked) at time " + this.age).formatted(Formatting.AQUA), false);
                      } else {
                         if (MinecraftClient.getInstance().player != null)
-                           MinecraftClient.getInstance().player.sendMessage(new LiteralText(maxDamage + " damage at time " + this.age + " from " + bedPos.getX() + " " + bedPos.getY() + " " + bedPos.getZ()).formatted(Formatting.AQUA), false);
+                           MinecraftClient.getInstance().player.sendMessage(new LiteralText(maxDamage + " damage (" + (maxUnexposedDamage - maxDamage) + " blocked) at time " + this.age + " from " + bedPos.getX() + " " + bedPos.getY() + " " + bedPos.getZ()).formatted(Formatting.AQUA), false);
                      }
                   }
                }
@@ -127,13 +150,13 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
          }
       }
 
-      //if (!this.world.isClient()) {
-      //   if (this.getVelocity() != null  && MinecraftClient.getInstance().player != null) {
-      //      MinecraftClient.getInstance().player.sendMessage(new LiteralText("Velocity internal " + this.getVelocity().getY() + " at time " + this.age).formatted(Formatting.LIGHT_PURPLE), false);
-      //      MinecraftClient.getInstance().player.sendMessage(new LiteralText("Position Delta " + (this.getY() - this.lastYPos) + " at time " + this.age).formatted(Formatting.GREEN), false);
-      //      this.lastYPos = this.getY();
-      //   }
-      //}
+     //if (!this.world.isClient()) {
+     //   if (this.getVelocity() != null  && MinecraftClient.getInstance().player != null) {
+     //      //MinecraftClient.getInstance().player.sendMessage(new LiteralText("Velocity internal " + this.getVelocity().getY() + " at time " + this.age).formatted(Formatting.LIGHT_PURPLE), false);
+     //      MinecraftClient.getInstance().player.sendMessage(new LiteralText("Position Delta " + (this.getY() - this.lastYPos) + " at time " + this.age).formatted(Formatting.GREEN), false);
+     //      this.lastYPos = this.getY();
+     //   }
+     //}
    }
 
    @Inject(method = "findPath(IILnet/minecraft/entity/ai/pathing/PathNode;)Lnet/minecraft/entity/ai/pathing/Path;", at = @At("RETURN"))
@@ -183,6 +206,14 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
 
       }
       graphInitialized = true;
+   }
+
+   private BlockPos getFoot(BlockPos head) {
+      BlockState state = world.getBlockState(head);
+      if (state.getBlock() instanceof BedBlock) {
+         return head.offset(state.get(BedBlock.FACING).getOpposite());
+      }
+      return null;
    }
 
    private int getDestinationIndex(int j, boolean clockwise, boolean swapDirections) {
