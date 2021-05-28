@@ -7,6 +7,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.math.Vec3d;
 
 import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
 import static com.mojang.brigadier.arguments.BoolArgumentType.getBool;
@@ -102,25 +103,24 @@ public class DragonCommand {
                             )
                     )
             ).then(
-                    literal("target").then(
-                            literal("front").executes(c -> {
-                                        DragonFightDebugger.setTargetRenderOption(RendererGroup.RenderOption.RENDER_FRONT);
-                                        return 1;
-                                    }
-                            )
+                literal("target")
+                    .then(
+                        literal("front").executes(c -> {
+                                    DragonFightDebugger.setTargetRenderOption(RendererGroup.RenderOption.RENDER_FRONT);
+                                    return 1;
+                                }
+                        )
                     )
-                            .then(
-                                    literal("back").executes(c -> {
-                                                DragonFightDebugger.setTargetRenderOption(RendererGroup.RenderOption.RENDER_BACK);
-                                                return 1;
-                                            }
-                                    )
-                            ).then(
-                            literal("none").executes(c -> {
-                                        DragonFightDebugger.setTargetRenderOption(RendererGroup.RenderOption.NONE);
-                                        return 1;
-                                    }
-                            )
+                    .then(
+                        literal("back").executes(c -> {
+                                    DragonFightDebugger.setTargetRenderOption(RendererGroup.RenderOption.RENDER_BACK);
+                                    return 1;
+                                })
+                    ).then(
+                    literal("none").executes(c -> {
+                                DragonFightDebugger.setTargetRenderOption(RendererGroup.RenderOption.NONE);
+                                return 1;
+                            })
                     )
             ).then(
                     literal("help").executes(c -> {
@@ -135,23 +135,46 @@ public class DragonCommand {
                         DragonFightDebugger.setPathRenderOption(RendererGroup.RenderOption.RENDER_FRONT);
                         DragonFightDebugger.setGraphRenderOption(RendererGroup.RenderOption.RENDER_BACK);
                         DragonFightDebugger.setTracerRenderOptions(RendererGroup.RenderOption.RENDER_FRONT, 200);
+                        DragonFightDebugger.setFutureRenderOption(RendererGroup.RenderOption.RENDER_FRONT);
                         return 1;
                     })
             ).then(
-                    literal("futurePaths").then(
-                            argument("showFuturePaths", bool()).executes(c -> {
-                                if (getBool(c, "showFuturePaths")) {
-                                    DragonFightDebugger.setFutureRenderOption(RendererGroup.RenderOption.RENDER_FRONT);
-                                } else {
-                                    DragonFightDebugger.setFutureRenderOption(RendererGroup.RenderOption.NONE);
-                                }
-                                return 1;
-                            })
-                    ).executes(c -> {
-                                if (MinecraftClient.getInstance().player != null)
-                                    DragonFightDebugger.setFuturePaths(MinecraftClient.getInstance().player.getPos());
-                                return 1;
-                    })
+                    literal("futurePaths")
+                            .then(literal("render")
+                                    .then(
+                                            literal("front").executes(c -> {
+                                                        DragonFightDebugger.setFutureRenderOption(RendererGroup.RenderOption.RENDER_FRONT);
+                                                        return 1;
+                                                    }
+                                            )
+                                    )
+                                    .then(
+                                            literal("back").executes(c -> {
+                                                DragonFightDebugger.setFutureRenderOption(RendererGroup.RenderOption.RENDER_BACK);
+                                                return 1;
+                                            })
+                                    ).then(
+                                            literal("none").executes(c -> {
+                                                DragonFightDebugger.setFutureRenderOption(RendererGroup.RenderOption.NONE);
+                                                return 1;
+                                            })
+                                    )
+                            ).then(literal("updateStart")
+                                    .executes(c -> {
+                                        if (MinecraftClient.getInstance().player != null)
+                                            DragonFightDebugger.setFuturePaths(MinecraftClient.getInstance().player.getPos());
+                                        return 1;
+                                    }).then(
+                                            argument("x", integer()).then(
+                                                    argument("y", integer()).then(
+                                                            argument("z", integer()).executes( c-> {
+                                                                DragonFightDebugger.setFuturePaths(new Vec3d(getInteger(c,"x"),getInteger(c,"y"),getInteger(c,"z")));
+                                                                return 1;
+                                                            })
+                                                    )
+                                            )
+                                    )
+                            )
             )
         );
     }

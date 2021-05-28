@@ -97,8 +97,9 @@ public class DragonFightDebugger implements ModInitializer {
 
 	public static void setFuturePaths(Vec3d pos) {
 		if (enderDragonEntity == null)
-			System.out.println("Whoops!");
-		FUTURE_PATHS = PATH_FINDER.getPotentialPathsFromNearestNode(pos, FUTURE_PATHS.getRenderOption());
+			System.err.println("Tried to set a future path with no dragon!");
+		else
+			FUTURE_PATHS = PATH_FINDER.getPotentialPathsFromNearestNode(pos, FUTURE_PATHS.getRenderOption());
 	}
 
 	public static void clearGraph() {
@@ -110,6 +111,7 @@ public class DragonFightDebugger implements ModInitializer {
 		GRAPH_COMPONENTS.clear();
 		PATHS.clear();
 		DRAGON_HEAD_SPOTS.clear();
+		FUTURE_PATHS.clear();
 		BedTracker.resetBedPositions();
 	}
 }
