@@ -8,6 +8,8 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
 
+import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
+import static com.mojang.brigadier.arguments.BoolArgumentType.getBool;
 import static com.mojang.brigadier.arguments.IntegerArgumentType.getInteger;
 import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
 import static net.minecraft.server.command.CommandManager.argument;
@@ -134,6 +136,21 @@ public class DragonCommand {
                         DragonFightDebugger.setGraphRenderOption(RendererGroup.RenderOption.RENDER_BACK);
                         DragonFightDebugger.setTracerRenderOptions(RendererGroup.RenderOption.RENDER_FRONT, 200);
                         return 1;
+                    })
+            ).then(
+                    literal("futurePaths").then(
+                            argument("showFuturePaths", bool()).executes(c -> {
+                                if (getBool(c, "showFuturePaths")) {
+                                    DragonFightDebugger.setFutureRenderOption(RendererGroup.RenderOption.RENDER_FRONT);
+                                } else {
+                                    DragonFightDebugger.setFutureRenderOption(RendererGroup.RenderOption.NONE);
+                                }
+                                return 1;
+                            })
+                    ).executes(c -> {
+                                if (MinecraftClient.getInstance().player != null)
+                                    DragonFightDebugger.setFuturePaths(MinecraftClient.getInstance().player.getPos());
+                                return 1;
                     })
             )
         );

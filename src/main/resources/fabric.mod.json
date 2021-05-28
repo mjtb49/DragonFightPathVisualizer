@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "dragon_fight_visualizer",
   "version": "${version}",
 
   "name": "Dragon Path Visualizer",

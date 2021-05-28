@@ -15,31 +15,15 @@ import java.util.List;
 public class PathRenderer extends Renderer {
     final static double o = 0.5d;
     private final Path path;
-    private final int phaseId;
+    private final Color color;
+
+    public PathRenderer(Path path, Color color) {
+        this.path = path;
+        this.color = color;
+    }
 
     public PathRenderer(Path path, int phaseId) {
         this.path = path;
-        this.phaseId = phaseId;
-    }
-
-    @Override
-    public void render() {
-        render(this.path, this.phaseId);
-    }
-
-    @Override
-    public BlockPos getPos() {
-        return path.getTarget();
-    }
-
-    //final static Color RED = new Color(255,0,0);
-    //final static Color GREEN = new Color(0,255,0);
-    //final static Color BLUE = new Color(0,0,255);
-    //final static Color WHITE = new Color(255,255,255);
-    //final static Color YELLOW = new Color(255,255,51);
-    //final static Color PURPLE = new Color(153,50,204);
-    public static void render(Path path, int phaseId) {
-        Color color;
         switch (phaseId) {
             case 0:
                 //holding pattern
@@ -61,10 +45,19 @@ public class PathRenderer extends Renderer {
                 //should never run
                 color = Color.PURPLE;
         }
+    }
 
-        if (path == null) {
-            return;
-        }
+    @Override
+    public void render() {
+        render(this.path, this.color);
+    }
+
+    @Override
+    public BlockPos getPos() {
+        return path.getTarget();
+    }
+
+    public static void render(Path path, Color color) {
         List<PathNode> nodeList = path.getNodes();
         for (int i = 0; i < nodeList.size(); i++) {
             PathNode node = nodeList.get(i);
@@ -84,7 +77,7 @@ public class PathRenderer extends Renderer {
                 //System.out.println("Trying to draw a line from " + node1.getPos() + " " +node2.getPos());
                 Line line = new Line(new Vec3d(node1.x + o, node1.y + o, node1.z + o),
                         new Vec3d(node2.x + o, node2.y + o, node2.z + o), color);
-               line.render();
+                line.render();
             }
         }
     }

@@ -10,6 +10,8 @@ public class Color {
 	public static final Color BLUE = new Color(0,0,255);
 	public static final Color YELLOW = new Color(255,255,51);
 	public static final Color PURPLE = new Color(153,50,204);
+	public static final Color AQUA = new Color(0,255,255);
+	public static final Color PINK = new Color(0xFF, 0x69, 0xB4);
 
 	private final int red;
 	private final int green;

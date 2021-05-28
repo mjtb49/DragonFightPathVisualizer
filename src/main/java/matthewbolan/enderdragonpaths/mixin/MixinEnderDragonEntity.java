@@ -1,6 +1,7 @@
 package matthewbolan.enderdragonpaths.mixin;
 
 import matthewbolan.enderdragonpaths.DragonFightDebugger;
+import matthewbolan.enderdragonpaths.util.HackyWorkaround;
 import matthewbolan.enderdragonpaths.util.BedTracker;
 import matthewbolan.enderdragonpaths.util.DragonTracker;
 import net.minecraft.block.*;
@@ -34,7 +35,7 @@ import matthewbolan.enderdragonpaths.render.Line;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Mixin(EnderDragonEntity.class)
-public abstract class MixinEnderDragonEntity extends LivingEntity {
+public abstract class MixinEnderDragonEntity extends LivingEntity implements HackyWorkaround {
 
    @Shadow @Final
    private PhaseManager phaseManager;
@@ -51,6 +52,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
    @Shadow public abstract boolean damage(DamageSource source, float amount);
 
    private boolean graphInitialized;
+   private boolean isComputingFakePaths;
 
    private Vec3d last = null;
    private float lastHealth = 200.0f;
@@ -60,15 +62,25 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
       super(entityType, world);
    }
 
+   @Inject(method = "<init>(Lnet/minecraft/entity/EntityType;Lnet/minecraft/world/World;)V", at = @At("TAIL"))
+   public void EnderDragonEntity(EntityType<? extends EnderDragonEntity> entityType, World world, CallbackInfo ci) {
+      //original sin
+      if (!world.isClient())
+         DragonFightDebugger.setEnderDragonEntity((EnderDragonEntity) (Object) this);
+   }
+
    @Inject(method = "tickMovement()V", at = @At("TAIL"))
    public void tickMovement(CallbackInfo ci) {
+
+      //Damage Tracking
       if (lastHealth > this.getHealth() && !this.world.isClient()) {
          float damage = lastHealth - this.getHealth();
          if (MinecraftClient.getInstance().player != null)
             MinecraftClient.getInstance().player.sendMessage(new LiteralText("Dragon took " + damage + " damage").formatted(Formatting.RED), false);
+         lastHealth = this.getHealth();
       }
-      lastHealth = this.getHealth();
 
+      //Target Tracking
       Vec3d target = phaseManager.getCurrent().getTarget();
       if (target != null && !this.world.isClient()) {
          double x = target.getX();
@@ -77,6 +89,8 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
          Cube cube = new Cube(new BlockPos(x, y, z), Color.ORANGE);
          DragonFightDebugger.submitTarget(cube);
       }
+
+      //Tracer
       if (!this.world.isClient()) {
          //TODO work out how we want to show server client desync
          double x = this.partHead.getX();
@@ -89,6 +103,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
          last = newPos;
       }
 
+      //Bed Damage Computing
       ConcurrentLinkedQueue<BlockPos> bedPositions = BedTracker.getBedPositions();
       if (!this.world.isClient()) {
          for (BlockPos bedPos : bedPositions) {
@@ -148,6 +163,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
          }
       }
 
+      //Y movement tracking
      if (DragonTracker.shouldPrintYDelta() && !this.world.isClient()) {
         if (this.getVelocity() != null  && MinecraftClient.getInstance().player != null) {
            //MinecraftClient.getInstance().player.sendMessage(new LiteralText("Velocity internal " + this.getVelocity().getY() + " at time " + this.age).formatted(Formatting.LIGHT_PURPLE), false);
@@ -159,11 +175,13 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
 
    @Inject(method = "findPath(IILnet/minecraft/entity/ai/pathing/PathNode;)Lnet/minecraft/entity/ai/pathing/Path;", at = @At("RETURN"))
    public void findPath(int i, int j, PathNode node, CallbackInfoReturnable<Path> ci) {
-      DragonFightDebugger.submitPath(ci.getReturnValue(), phaseManager.getCurrent());
+      if (!isComputingFakePaths)
+         DragonFightDebugger.submitPath(ci.getReturnValue(), phaseManager.getCurrent());
    }
 
    @Inject(method = "getNearestPathNodeIndex()I", at = @At(value = "TAIL"))
    public void getNearestPathNodeIndex(CallbackInfoReturnable<Integer> cir) {
+
       if(!graphInitialized) {
          DragonFightDebugger.clearGraph();
 
@@ -214,22 +232,13 @@ public abstract class MixinEnderDragonEntity extends LivingEntity {
       return null;
    }
 
-   private int getDestinationIndex(int j, boolean clockwise, boolean swapDirections) {
-      int k = j;
-      if (swapDirections) {
-         clockwise = !clockwise;
-         k = j + 6;
-      }
+   @Override
+   public boolean isComputingFakePaths() {
+      return isComputingFakePaths;
+   }
 
-      if (clockwise) {
-         ++k;
-      } else {
-         --k;
-      }
-      k %= 12;
-      if (k < 0) {
-         k += 12;
-      }
-      return k;
+   @Override
+   public void setComputingFakePaths(boolean b) {
+      isComputingFakePaths = b;
    }
 }
