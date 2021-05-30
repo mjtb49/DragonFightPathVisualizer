@@ -10,6 +10,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.pathing.PathNode;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
+import net.minecraft.entity.boss.dragon.EnderDragonFight;
 import net.minecraft.entity.boss.dragon.EnderDragonPart;
 import net.minecraft.entity.boss.dragon.phase.PhaseManager;
 import net.minecraft.entity.damage.DamageSource;
@@ -20,6 +21,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.explosion.Explosion;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -51,8 +53,10 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
 
    @Shadow public abstract boolean damage(DamageSource source, float amount);
 
+   @Shadow @Final private @Nullable EnderDragonFight fight;
    private boolean graphInitialized;
    private boolean isComputingFakePaths;
+   private boolean lastDirection = true;
 
    private Vec3d last = null;
    private float lastHealth = 200.0f;
@@ -75,7 +79,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
       //Damage Tracking
       if (lastHealth > this.getHealth() && !this.world.isClient()) {
          float damage = lastHealth - this.getHealth();
-         if (MinecraftClient.getInstance().player != null)
+         if (MinecraftClient.getInstance().player != null && DragonTracker.shouldPrintDamageDone())
             MinecraftClient.getInstance().player.sendMessage(new LiteralText("Dragon took " + damage + " damage").formatted(Formatting.RED), false);
          lastHealth = this.getHealth();
       }
@@ -164,12 +168,12 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
       }
 
       //Y movement tracking
-     if (DragonTracker.shouldPrintYDelta() && !this.world.isClient()) {
-        if (this.getVelocity() != null  && MinecraftClient.getInstance().player != null) {
+     if (!this.world.isClient()) {
+        if (this.getVelocity() != null  && MinecraftClient.getInstance().player != null && DragonTracker.shouldPrintYDelta()) {
            //MinecraftClient.getInstance().player.sendMessage(new LiteralText("Velocity internal " + this.getVelocity().getY() + " at time " + this.age).formatted(Formatting.LIGHT_PURPLE), false);
            MinecraftClient.getInstance().player.sendMessage(new LiteralText("Position Delta " + (this.getY() - this.lastYPos) + " at time " + this.age).formatted(Formatting.GREEN), false);
-           this.lastYPos = this.getY();
         }
+        this.lastYPos = this.getY();
      }
    }
 
