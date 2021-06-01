@@ -6,6 +6,7 @@ import matthewbolan.enderdragonpaths.util.BedTracker;
 import matthewbolan.enderdragonpaths.util.DragonTracker;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.pathing.PathNode;
@@ -226,6 +227,16 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
 
       }
       graphInitialized = true;
+   }
+
+
+   //@Inject(method = "canSee(Lnet/minecraft/entity/Entity;)Z", at = @At("RETURN"), cancellable = true)
+   @Override
+   public boolean canSee(Entity entity) {
+      if (!DragonTracker.shouldLetDragonSee()) {
+         return false;
+      }
+      else return super.canSee(entity);
    }
 
    private BlockPos getFoot(BlockPos head) {

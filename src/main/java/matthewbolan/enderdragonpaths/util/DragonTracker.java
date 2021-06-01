@@ -4,6 +4,7 @@ public class DragonTracker {
     private static boolean shouldPrintYDelta = false;
     private static boolean shouldPrintClockwise = true;
     private static boolean shouldPrintDamageDone = true;
+    private static boolean shouldLetDragonSee = true;
 
     public static void setShouldPrintYDelta(boolean shouldPrintYDelta) {
         DragonTracker.shouldPrintYDelta = shouldPrintYDelta;
@@ -15,6 +16,10 @@ public class DragonTracker {
 
     public static void setShouldPrintDamageDone(boolean shouldPrintDamageDone) {
         DragonTracker.shouldPrintDamageDone = shouldPrintDamageDone;
+    }
+
+    public static void setShouldLetDragonSee(boolean shouldLetDragonSee) {
+        DragonTracker.shouldLetDragonSee = shouldLetDragonSee;
     }
 
     public static boolean shouldPrintYDelta() {
@@ -29,5 +34,7 @@ public class DragonTracker {
         return shouldPrintDamageDone;
     }
 
-
+    public static boolean shouldLetDragonSee() {
+        return shouldLetDragonSee;
+    }
 }

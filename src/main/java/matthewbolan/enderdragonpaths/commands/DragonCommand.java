@@ -3,6 +3,7 @@ package matthewbolan.enderdragonpaths.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import matthewbolan.enderdragonpaths.DragonFightDebugger;
 import matthewbolan.enderdragonpaths.render.RendererGroup;
+import matthewbolan.enderdragonpaths.util.DragonTracker;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
@@ -175,6 +176,13 @@ public class DragonCommand {
                                             )
                                     )
                             )
+            ).then(
+                    literal("letDragonSee").then(
+                            argument("canSee",bool()).executes(c->{
+                                DragonTracker.setShouldLetDragonSee(getBool(c,"canSee"));
+                                return 1;
+                            })
+                    )
             )
         );
     }
