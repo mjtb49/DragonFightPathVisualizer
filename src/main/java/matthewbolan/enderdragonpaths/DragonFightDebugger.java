@@ -19,6 +19,8 @@ import net.minecraft.util.math.Vec3d;
 public class DragonFightDebugger implements ModInitializer {
 
 	private static final RendererGroup<Cube> TARGETS = new RendererGroup<>(1, RendererGroup.RenderOption.RENDER_FRONT);
+	private static final RendererGroup<Cube> CLOSEST_TO_PLAYER = new RendererGroup<>(1, RendererGroup.RenderOption.RENDER_FRONT);
+	private static final RendererGroup<Cube> CLOSEST_TO_DRAGON = new RendererGroup<>(1, RendererGroup.RenderOption.RENDER_FRONT);
 	private static final RendererGroup<Line> DRAGON_HEAD_SPOTS = new RendererGroup<>(200, RendererGroup.RenderOption.RENDER_FRONT);
 	private static final RendererGroup<Renderer> GRAPH_COMPONENTS = new RendererGroup<>(300, RendererGroup.RenderOption.RENDER_BACK);
 	private static final RendererGroup<PathRenderer> PATHS = new RendererGroup<>(1, RendererGroup.RenderOption.RENDER_FRONT);
@@ -32,6 +34,14 @@ public class DragonFightDebugger implements ModInitializer {
 
 	public static void submitElement(Renderer r) {
 		GRAPH_COMPONENTS.addRenderer(r);
+	}
+
+	public static void submitClosestToDragon(Cube r) {
+		CLOSEST_TO_DRAGON.addRenderer(r);
+	}
+
+	public static void submitClosestToPlayer(Cube r) {
+		CLOSEST_TO_PLAYER.addRenderer(r);
 	}
 
 	public static void submitTarget(Cube r) {
@@ -55,6 +65,8 @@ public class DragonFightDebugger implements ModInitializer {
 			PATHS.render();
 			TARGETS.render();
 			DRAGON_HEAD_SPOTS.render();
+			CLOSEST_TO_PLAYER.render();
+			CLOSEST_TO_DRAGON.render();
 
 			GlStateManager.disableDepthTest();
 
@@ -88,6 +100,11 @@ public class DragonFightDebugger implements ModInitializer {
 		TARGETS.setRenderOption(option);
 	}
 
+	public static void setClosestNodesRenderOptions(RendererGroup.RenderOption option) {
+		CLOSEST_TO_PLAYER.setRenderOption(option);
+		CLOSEST_TO_DRAGON.setRenderOption(option);
+	}
+
 	public static void setFutureRenderOption(RendererGroup.RenderOption option) {FUTURE_PATHS.setRenderOption(option);}
 
 	public static void setEnderDragonEntity(EnderDragonEntity enderDragonEntity) {
@@ -112,6 +129,8 @@ public class DragonFightDebugger implements ModInitializer {
 		PATHS.clear();
 		DRAGON_HEAD_SPOTS.clear();
 		FUTURE_PATHS.clear();
+		CLOSEST_TO_DRAGON.clear();
+		CLOSEST_TO_PLAYER.clear();
 		BedTracker.resetBedPositions();
 	}
 }

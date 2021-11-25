@@ -137,6 +137,8 @@ public class DragonCommand {
                         DragonFightDebugger.setGraphRenderOption(RendererGroup.RenderOption.RENDER_BACK);
                         DragonFightDebugger.setTracerRenderOptions(RendererGroup.RenderOption.RENDER_FRONT, 200);
                         DragonFightDebugger.setFutureRenderOption(RendererGroup.RenderOption.RENDER_FRONT);
+                        DragonFightDebugger.setClosestNodesRenderOptions(RendererGroup.RenderOption.RENDER_FRONT);
+                        DragonTracker.setShouldLetDragonSee(true);
                         return 1;
                     })
             ).then(
@@ -180,6 +182,25 @@ public class DragonCommand {
                     literal("letDragonSee").then(
                             argument("canSee",bool()).executes(c->{
                                 DragonTracker.setShouldLetDragonSee(getBool(c,"canSee"));
+                                return 1;
+                            })
+                    )
+            ).then(
+                    literal("closestNodes").then(
+                            literal("front").executes(c -> {
+                                        DragonFightDebugger.setClosestNodesRenderOptions(RendererGroup.RenderOption.RENDER_FRONT);
+                                        return 1;
+                                    }
+                            )
+                    )
+                            .then(
+                                    literal("back").executes(c -> {
+                                        DragonFightDebugger.setClosestNodesRenderOptions(RendererGroup.RenderOption.RENDER_BACK);
+                                        return 1;
+                                    })
+                            ).then(
+                            literal("none").executes(c -> {
+                                DragonFightDebugger.setClosestNodesRenderOptions(RendererGroup.RenderOption.NONE);
                                 return 1;
                             })
                     )

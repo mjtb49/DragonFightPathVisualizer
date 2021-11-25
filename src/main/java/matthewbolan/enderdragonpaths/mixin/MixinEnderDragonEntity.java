@@ -15,6 +15,7 @@ import net.minecraft.entity.boss.dragon.EnderDragonFight;
 import net.minecraft.entity.boss.dragon.EnderDragonPart;
 import net.minecraft.entity.boss.dragon.phase.PhaseManager;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
@@ -77,6 +78,9 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
    @Inject(method = "tickMovement()V", at = @At("TAIL"))
    public void tickMovement(CallbackInfo ci) {
 
+      //Highlight Node Closest to dragon
+      handleClosestTargets();
+
       //Damage Tracking
       if (lastHealth > this.getHealth() && !this.world.isClient()) {
          float damage = lastHealth - this.getHealth();
@@ -86,6 +90,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
       }
 
       //Target Tracking
+      //TODO find out if this thing rounding target position is correct
       Vec3d target = phaseManager.getCurrent().getTarget();
       if (target != null && !this.world.isClient()) {
          double x = target.getX();
@@ -205,6 +210,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
             DragonFightDebugger.submitElement(coob);
          }
 
+         //TODO should this be feature?
          //Render possible node paths
          //for (int j = 12; j < 20; j+=4) {
          //int j = 12; //EAST = 12, //WEST = 16
@@ -245,6 +251,27 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
          return head.offset(state.get(BedBlock.FACING).getOpposite());
       }
       return null;
+   }
+
+   private void handleClosestTargets() {
+      if (graphInitialized) {
+         double bestPlayerDistance = Double.MAX_VALUE;
+         double bestDragonDistance = Double.MAX_VALUE;
+         Cube dragonCube = new Cube();
+         Cube playerCube = new Cube();
+         for (int i = 0; i < 24; i++) {
+            if (pathNodes[i].getPos().getSquaredDistance(new BlockPos(this.getPos())) < bestDragonDistance) {
+               dragonCube = new Cube(pathNodes[i].getPos(), Color.GREEN);
+               bestDragonDistance = pathNodes[i].getPos().getSquaredDistance(new BlockPos(this.getPos()));
+            }
+            if (pathNodes[i].getPos().getSquaredDistance(new BlockPos(MinecraftClient.getInstance().player.getPos())) < bestPlayerDistance) {
+               playerCube = new Cube(pathNodes[i].getPos(), Color.PINK);
+               bestPlayerDistance = pathNodes[i].getPos().getSquaredDistance(new BlockPos(MinecraftClient.getInstance().player.getPos()));
+            }
+         }
+         DragonFightDebugger.submitClosestToDragon(dragonCube);
+         DragonFightDebugger.submitClosestToPlayer(playerCube);
+      }
    }
 
    @Override
