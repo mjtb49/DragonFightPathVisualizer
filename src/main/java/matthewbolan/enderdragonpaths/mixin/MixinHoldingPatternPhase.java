@@ -17,9 +17,14 @@ public class MixinHoldingPatternPhase {
     @Shadow private boolean field_7044;
 
     private boolean lastValue = true;
+    private boolean lastValueExists = false;
 
     @Inject(method = "serverTick()V", at = @At("TAIL"))
     public void serverTick(CallbackInfo ci) {
+        if (!lastValueExists) {
+            lastValueExists = true;
+            lastValue = !field_7044;
+        }
         if (this.field_7044 != lastValue) {
             if (DragonTracker.shouldPrintClockwise() && MinecraftClient.getInstance().player != null) {
                 if (this.field_7044) {

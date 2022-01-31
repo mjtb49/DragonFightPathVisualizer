@@ -56,6 +56,9 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
    @Shadow public abstract boolean damage(DamageSource source, float amount);
 
    @Shadow @Final private @Nullable EnderDragonFight fight;
+
+   @Shadow public abstract EnderDragonPart[] getBodyParts();
+
    private boolean graphInitialized;
    private boolean isComputingFakePaths;
    private boolean lastDirection = true;
@@ -96,7 +99,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
          double x = target.getX();
          double y = target.getY();
          double z = target.getZ();
-         Cube cube = new Cube(new BlockPos(x, y, z), Color.ORANGE);
+         Cube cube = new Cube(new Vec3d(x, y, z), Color.ORANGE);
          DragonFightDebugger.submitTarget(cube);
       }
 
@@ -104,7 +107,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
       if (!this.world.isClient()) {
          //TODO work out how we want to show server client desync
          double x = this.partHead.getX();
-         double y = this.partHead.getEyeY();
+         double y = this.partHead.getY();
          double z = this.partHead.getZ();
          Vec3d newPos = new Vec3d(x, y, z);
          if (last != null) {
@@ -178,6 +181,10 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
         if (this.getVelocity() != null  && MinecraftClient.getInstance().player != null && DragonTracker.shouldPrintYDelta()) {
            //MinecraftClient.getInstance().player.sendMessage(new LiteralText("Velocity internal " + this.getVelocity().getY() + " at time " + this.age).formatted(Formatting.LIGHT_PURPLE), false);
            MinecraftClient.getInstance().player.sendMessage(new LiteralText("Position Delta " + (this.getY() - this.lastYPos) + " at time " + this.age).formatted(Formatting.GREEN), false);
+           MinecraftClient.getInstance().player.sendMessage(new LiteralText("Y " + this.getY() + " at time " + this.age).formatted(Formatting.GREEN), false);
+           MinecraftClient.getInstance().player.sendMessage(new LiteralText("Facing " + (this.getRotationClient().y) + " at time " + this.age).formatted(Formatting.GREEN), false);
+           if (this.partHead != null)
+            MinecraftClient.getInstance().player.sendMessage(new LiteralText("Damage done at " + this.partHead.getX() + " " + this.partHead.getY() + " " + this.partHead.getZ()).formatted(Formatting.GREEN), false);
         }
         this.lastYPos = this.getY();
      }

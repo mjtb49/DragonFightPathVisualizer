@@ -1,6 +1,7 @@
 package matthewbolan.enderdragonpaths.render;
 
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
 public class Cube extends Cuboid {
@@ -17,9 +18,14 @@ public class Cube extends Cuboid {
         super(pos, new Vec3i(1, 1, 1), color);
     }
 
+    public Cube(Vec3d pos, Color color) {
+        super(pos, new Vec3i(1, 1, 1), color);
+    }
+
+
     @Override
     public BlockPos getPos() {
-        return this.start;
+        return new BlockPos(this.start.getX(), this.start.getY(),  this.start.getZ()) ;
     }
 
 }
