@@ -15,11 +15,10 @@ import net.minecraft.entity.boss.dragon.EnderDragonFight;
 import net.minecraft.entity.boss.dragon.EnderDragonPart;
 import net.minecraft.entity.boss.dragon.phase.PhaseManager;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.decoration.EndCrystalEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraft.world.explosion.Explosion;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +34,7 @@ import matthewbolan.enderdragonpaths.render.Color;
 import matthewbolan.enderdragonpaths.render.Cube;
 import matthewbolan.enderdragonpaths.render.Line;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Mixin(EnderDragonEntity.class)
@@ -84,10 +84,12 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
       handleClosestTargets();
 
       //Damage Tracking
-      if (lastHealth > this.getHealth() && !this.world.isClient()) {
-         float damage = lastHealth - this.getHealth();
-         if (MinecraftClient.getInstance().player != null && DragonTracker.shouldPrintDamageDone())
-            MinecraftClient.getInstance().player.sendMessage(new LiteralText("Dragon took " + damage + " damage").formatted(Formatting.RED), false);
+      if (!this.world.isClient()) {
+         if (lastHealth > this.getHealth()) {
+            float damage = lastHealth - this.getHealth();
+            if (MinecraftClient.getInstance().player != null && DragonTracker.shouldPrintDamageDone())
+               MinecraftClient.getInstance().player.sendMessage(new LiteralText("Dragon took " + damage + " damage").formatted(Formatting.RED), false);
+         }
          lastHealth = this.getHealth();
       }
 
@@ -115,67 +117,80 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
          last = newPos;
       }
 
-      //Bed Damage Computing
-      ConcurrentLinkedQueue<BlockPos> bedPositions = ExplosionTracker.getBedPositions();
+
+
+      ConcurrentLinkedQueue<BlockPos> explosionPositions = ExplosionTracker.getBedPositions();
+      List<EndCrystalEntity> crystals = this.world.getNonSpectatingEntities(EndCrystalEntity.class, this.getBoundingBox().expand(10.0D));
+      boolean printPositions = (crystals.size() + explosionPositions.size()) > 1;
       if (!this.world.isClient()) {
-         for (BlockPos bedPos : bedPositions) {
-            if (!(this.world.getBlockState(bedPos).getBlock() instanceof BedBlock) && !(this.world.getBlockState(bedPos).getBlock() instanceof RespawnAnchorBlock)) {
-               bedPositions.remove(bedPos);
+         //Crystal Explosion Damage Computing
+         for (EndCrystalEntity crystal: crystals) {
+            Vec3d explosionCenter = new Vec3d(crystal.getX(), crystal.getY(), crystal.getZ());
+            if (ExplosionTracker.shouldPrintDamage()) {
+               double power = 6.0;
+               float[] bestDamage = new float[]{0,0};
+               for (EnderDragonPart part : parts) {
+                  double y = (MathHelper.sqrt(part.squaredDistanceTo(explosionCenter)) / (power * 2.0));
+                  if (y <= 1.0D) {
+                     double exposure = Explosion.getExposure(explosionCenter, part);
+                     float[] damage = computeDamage(part, power, exposure, explosionCenter);
+                     if (damage[0] >  bestDamage[0])
+                        bestDamage = damage;
+                  }
+               }
+               if ((int) bestDamage[0] >= ExplosionTracker.getDamageThreshold()) {
+                  if (printPositions) {
+                     if (MinecraftClient.getInstance().player != null)
+                        MinecraftClient.getInstance().player.sendMessage(new LiteralText(bestDamage[0] + " damage (" + (bestDamage[1] - bestDamage[0]) + " blocked) at time " + this.age).formatted(Formatting.AQUA), false);
+                  } else {
+                     if (MinecraftClient.getInstance().player != null)
+                        MinecraftClient.getInstance().player.sendMessage(new LiteralText(bestDamage[0] + " damage (" + (bestDamage[1] - bestDamage[0]) + " blocked) at time " + this.age + " from " + (int)crystal.getX() + " " + (int)crystal.getY() + " " + (int)crystal.getZ()).formatted(Formatting.AQUA), false);
+                  }
+               }
+            }
+         }
+
+         //Block Explosion Damage Computing
+         for (BlockPos explosionPos : explosionPositions) {
+            if (!(this.world.getBlockState(explosionPos).getBlock() instanceof BedBlock) && !(this.world.getBlockState(explosionPos).getBlock() instanceof RespawnAnchorBlock)) {
+               explosionPositions.remove(explosionPos);
             } else {
                boolean printDamage = ExplosionTracker.shouldPrintDamage();
-               if (bedPos != null && printDamage) {
-                  Vec3d explosionCenter = Vec3d.ofCenter(bedPos);
-                  double powerTimes2 = 2.0 * 5.0;
-                  float maxDamage = 0;
-                  double maxUnexposedDamage = 0;
+               if (explosionPos != null && printDamage) {
+                  Vec3d explosionCenter = Vec3d.ofCenter(explosionPos);
+                  double power = 5.0;
+                  float[] bestDamage = new float[]{0,0};
                   for (EnderDragonPart part : parts) {
-                     double y = (MathHelper.sqrt(part.squaredDistanceTo(explosionCenter)) / powerTimes2);
+                     double y = (MathHelper.sqrt(part.squaredDistanceTo(explosionCenter)) / (power * 2.0));
                      if (y <= 1.0D) {
-                        //removing and re-adding explosives for exposure calculation
                         double exposure = 0.0D;
-                        if (this.world.getBlockState(bedPos).getBlock() instanceof BedBlock) {
-                           BlockPos foot = getFoot(bedPos);
-                           BlockState headState = world.getBlockState(bedPos);
+                        if (this.world.getBlockState(explosionPos).getBlock() instanceof BedBlock) {
+                           BlockPos foot = getFoot(explosionPos);
+                           BlockState headState = world.getBlockState(explosionPos);
                            BlockState footState = world.getBlockState(foot);
-                           world.setBlockState(bedPos, Blocks.AIR.getDefaultState(), 16 + 128);
+                           world.setBlockState(explosionPos, Blocks.AIR.getDefaultState(), 16 + 128);
                            world.setBlockState(foot, Blocks.AIR.getDefaultState(), 16 + 128);
                            exposure = Explosion.getExposure(explosionCenter, part);
-                           world.setBlockState(bedPos, headState, 16 + 128);
+                           world.setBlockState(explosionPos, headState, 16 + 128);
                            world.setBlockState(foot, footState, 16 + 128);
-                        } else if (this.world.getBlockState(bedPos).getBlock() instanceof RespawnAnchorBlock) {
-                           BlockState anchorState = world.getBlockState(bedPos);
-                           world.setBlockState(bedPos, Blocks.AIR.getDefaultState(), 16 + 128);
+                        } else if (this.world.getBlockState(explosionPos).getBlock() instanceof RespawnAnchorBlock) {
+                           BlockState anchorState = world.getBlockState(explosionPos);
+                           world.setBlockState(explosionPos, Blocks.AIR.getDefaultState(), 16 + 128);
                            exposure = Explosion.getExposure(explosionCenter, part);
-                           world.setBlockState(bedPos, anchorState, 16 + 128);
+                           world.setBlockState(explosionPos, anchorState, 16 + 128);
                         }
-
-                        double ae = (1.0D - y) * exposure;
-                        float damage = (float) ((ae * ae + ae) / 2.0D * 7.0D * powerTimes2 + 1.0D);
-                        if (part != this.partHead)
-                           damage = ((int) damage) / 4.0F + Math.min(damage, 1.0F);
-                        else
-                           damage = (float) (int) damage;
-
-                        ae = (1.0D - y);
-                        float unexposedDamage = (float) ((ae * ae + ae) / 2.0D * 7.0D * powerTimes2 + 1.0D);
-                        if (part != this.partHead)
-                           unexposedDamage = ((int) unexposedDamage) / 4.0F + Math.min(unexposedDamage, 1.0F);
-                        else
-                           unexposedDamage = (float) (int) unexposedDamage;
-
-                        if (damage > maxDamage) {
-                           maxDamage = damage;
-                           maxUnexposedDamage = unexposedDamage;
-                        }
+                        float[] damage = computeDamage(part, power, exposure, explosionCenter);
+                        if (damage[0] >  bestDamage[0])
+                           bestDamage = damage;
                      }
                   }
-                  if ((int) maxDamage >= ExplosionTracker.getDamageThreshold()) {
-                     if (bedPositions.size() == 1) {
+                  if ((int) bestDamage[0] >= ExplosionTracker.getDamageThreshold()) {
+                     if (printPositions) {
                         if (MinecraftClient.getInstance().player != null)
-                           MinecraftClient.getInstance().player.sendMessage(new LiteralText(maxDamage + " damage (" + (maxUnexposedDamage - maxDamage) + " blocked) at time " + this.age).formatted(Formatting.AQUA), false);
+                           MinecraftClient.getInstance().player.sendMessage(new LiteralText(bestDamage[0] + " damage (" + (bestDamage[1] - bestDamage[0]) + " blocked) at time " + this.age).formatted(Formatting.AQUA), false);
                      } else {
                         if (MinecraftClient.getInstance().player != null)
-                           MinecraftClient.getInstance().player.sendMessage(new LiteralText(maxDamage + " damage (" + (maxUnexposedDamage - maxDamage) + " blocked) at time " + this.age + " from " + bedPos.getX() + " " + bedPos.getY() + " " + bedPos.getZ()).formatted(Formatting.AQUA), false);
+                           MinecraftClient.getInstance().player.sendMessage(new LiteralText(bestDamage[0] + " damage (" + (bestDamage[1] - bestDamage[0]) + " blocked) at time " + this.age + " from " + explosionPos.getX() + " " + explosionPos.getY() + " " + explosionPos.getZ()).formatted(Formatting.AQUA), false);
                      }
                   }
                }
@@ -191,7 +206,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
            MinecraftClient.getInstance().player.sendMessage(new LiteralText("Y " + this.getY() + " at time " + this.age).formatted(Formatting.GREEN), false);
            MinecraftClient.getInstance().player.sendMessage(new LiteralText("Facing " + (this.getRotationClient().y) + " at time " + this.age).formatted(Formatting.GREEN), false);
            if (this.partHead != null)
-            MinecraftClient.getInstance().player.sendMessage(new LiteralText("Damage done at " + this.partHead.getX() + " " + this.partHead.getY() + " " + this.partHead.getZ()).formatted(Formatting.GREEN), false);
+              MinecraftClient.getInstance().player.sendMessage(new LiteralText("Damage done at " + this.partHead.getX() + " " + this.partHead.getY() + " " + this.partHead.getZ()).formatted(Formatting.GREEN), false);
         }
         this.lastYPos = this.getY();
      }
@@ -278,7 +293,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
                dragonCube = new Cube(pathNodes[i].getPos(), Color.GREEN);
                bestDragonDistance = pathNodes[i].getPos().getSquaredDistance(new BlockPos(this.getPos()));
             }
-            if (pathNodes[i].getPos().getSquaredDistance(new BlockPos(MinecraftClient.getInstance().player.getPos())) < bestPlayerDistance) {
+            if (MinecraftClient.getInstance().player != null && pathNodes[i].getPos().getSquaredDistance(new BlockPos(MinecraftClient.getInstance().player.getPos())) < bestPlayerDistance) {
                playerCube = new Cube(pathNodes[i].getPos(), Color.PINK);
                bestPlayerDistance = pathNodes[i].getPos().getSquaredDistance(new BlockPos(MinecraftClient.getInstance().player.getPos()));
             }
@@ -286,6 +301,33 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
          DragonFightDebugger.submitClosestToDragon(dragonCube);
          DragonFightDebugger.submitClosestToPlayer(playerCube);
       }
+   }
+
+   public float[] computeDamage(EnderDragonPart part, double power, double exposure, Vec3d center) {
+      double powerTimes2 = 2.0 * power;
+      //for (EnderDragonPart part : parts) {
+         double y = (MathHelper.sqrt(part.squaredDistanceTo(center)) / powerTimes2);
+         if (y <= 1.0D) {
+            //removing and re-adding explosives for exposure calculation
+            //double exposure = Explosion.getExposure(power, part);
+            double ae = (1.0D - y) * exposure;
+            float damage = (float) ((ae * ae + ae) / 2.0D * 7.0D * powerTimes2 + 1.0D);
+            if (part != this.partHead)
+               damage = ((int) damage) / 4.0F + Math.min(damage, 1.0F);
+            else
+               damage = (float) (int) damage;
+
+            ae = (1.0D - y);
+            float unexposedDamage = (float) ((ae * ae + ae) / 2.0D * 7.0D * powerTimes2 + 1.0D);
+            if (part != this.partHead)
+               unexposedDamage = ((int) unexposedDamage) / 4.0F + Math.min(unexposedDamage, 1.0F);
+            else
+               unexposedDamage = (float) (int) unexposedDamage;
+
+            return new float[] {damage, unexposedDamage};
+         }
+         return new float[] {0, 0};
+      //}
    }
 
    @Override
