@@ -4,7 +4,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import matthewbolan.enderdragonpaths.render.Cube;
 import matthewbolan.enderdragonpaths.render.Line;
-import matthewbolan.enderdragonpaths.util.BedTracker;
+import matthewbolan.enderdragonpaths.util.ExplosionTracker;
 import matthewbolan.enderdragonpaths.render.RendererGroup;
 import matthewbolan.enderdragonpaths.util.PathFinder;
 import net.fabricmc.api.ModInitializer;
@@ -131,6 +131,6 @@ public class DragonFightDebugger implements ModInitializer {
 		FUTURE_PATHS.clear();
 		CLOSEST_TO_DRAGON.clear();
 		CLOSEST_TO_PLAYER.clear();
-		BedTracker.resetBedPositions();
+		ExplosionTracker.resetBedPositions();
 	}
 }

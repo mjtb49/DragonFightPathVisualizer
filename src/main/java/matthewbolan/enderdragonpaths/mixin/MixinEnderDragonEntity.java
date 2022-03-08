@@ -2,7 +2,7 @@ package matthewbolan.enderdragonpaths.mixin;
 
 import matthewbolan.enderdragonpaths.DragonFightDebugger;
 import matthewbolan.enderdragonpaths.util.HackyWorkaround;
-import matthewbolan.enderdragonpaths.util.BedTracker;
+import matthewbolan.enderdragonpaths.util.ExplosionTracker;
 import matthewbolan.enderdragonpaths.util.DragonTracker;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
@@ -15,7 +15,6 @@ import net.minecraft.entity.boss.dragon.EnderDragonFight;
 import net.minecraft.entity.boss.dragon.EnderDragonPart;
 import net.minecraft.entity.boss.dragon.phase.PhaseManager;
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
@@ -117,30 +116,38 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
       }
 
       //Bed Damage Computing
-      ConcurrentLinkedQueue<BlockPos> bedPositions = BedTracker.getBedPositions();
+      ConcurrentLinkedQueue<BlockPos> bedPositions = ExplosionTracker.getBedPositions();
       if (!this.world.isClient()) {
          for (BlockPos bedPos : bedPositions) {
-            if (!(this.world.getBlockState(bedPos).getBlock() instanceof BedBlock)) {
+            if (!(this.world.getBlockState(bedPos).getBlock() instanceof BedBlock) && !(this.world.getBlockState(bedPos).getBlock() instanceof RespawnAnchorBlock)) {
                bedPositions.remove(bedPos);
             } else {
-               boolean printDamage = BedTracker.shouldPrintDamage();
+               boolean printDamage = ExplosionTracker.shouldPrintDamage();
                if (bedPos != null && printDamage) {
-                  Vec3d bedCenter = Vec3d.ofCenter(bedPos);
+                  Vec3d explosionCenter = Vec3d.ofCenter(bedPos);
                   double powerTimes2 = 2.0 * 5.0;
                   float maxDamage = 0;
                   double maxUnexposedDamage = 0;
                   for (EnderDragonPart part : parts) {
-                     double y = (MathHelper.sqrt(part.squaredDistanceTo(bedCenter)) / powerTimes2);
+                     double y = (MathHelper.sqrt(part.squaredDistanceTo(explosionCenter)) / powerTimes2);
                      if (y <= 1.0D) {
-                        //removing and re-adding beds for exposure calculation
-                        BlockPos foot = getFoot(bedPos);
-                        BlockState headState = world.getBlockState(bedPos);
-                        BlockState footState = world.getBlockState(foot);
-                        world.setBlockState(bedPos, Blocks.AIR.getDefaultState(), 16 + 128);
-                        world.setBlockState(foot, Blocks.AIR.getDefaultState(), 16 + 128);
-                        double exposure = Explosion.getExposure(bedCenter, part);
-                        world.setBlockState(bedPos, headState, 16 + 128);
-                        world.setBlockState(foot, footState, 16 + 128);
+                        //removing and re-adding explosives for exposure calculation
+                        double exposure = 0.0D;
+                        if (this.world.getBlockState(bedPos).getBlock() instanceof BedBlock) {
+                           BlockPos foot = getFoot(bedPos);
+                           BlockState headState = world.getBlockState(bedPos);
+                           BlockState footState = world.getBlockState(foot);
+                           world.setBlockState(bedPos, Blocks.AIR.getDefaultState(), 16 + 128);
+                           world.setBlockState(foot, Blocks.AIR.getDefaultState(), 16 + 128);
+                           exposure = Explosion.getExposure(explosionCenter, part);
+                           world.setBlockState(bedPos, headState, 16 + 128);
+                           world.setBlockState(foot, footState, 16 + 128);
+                        } else if (this.world.getBlockState(bedPos).getBlock() instanceof RespawnAnchorBlock) {
+                           BlockState anchorState = world.getBlockState(bedPos);
+                           world.setBlockState(bedPos, Blocks.AIR.getDefaultState(), 16 + 128);
+                           exposure = Explosion.getExposure(explosionCenter, part);
+                           world.setBlockState(bedPos, anchorState, 16 + 128);
+                        }
 
                         double ae = (1.0D - y) * exposure;
                         float damage = (float) ((ae * ae + ae) / 2.0D * 7.0D * powerTimes2 + 1.0D);
@@ -162,7 +169,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
                         }
                      }
                   }
-                  if ((int) maxDamage >= BedTracker.getDamageThreshold()) {
+                  if ((int) maxDamage >= ExplosionTracker.getDamageThreshold()) {
                      if (bedPositions.size() == 1) {
                         if (MinecraftClient.getInstance().player != null)
                            MinecraftClient.getInstance().player.sendMessage(new LiteralText(maxDamage + " damage (" + (maxUnexposedDamage - maxDamage) + " blocked) at time " + this.age).formatted(Formatting.AQUA), false);

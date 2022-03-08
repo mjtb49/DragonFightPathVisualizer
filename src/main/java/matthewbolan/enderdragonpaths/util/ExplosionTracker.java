@@ -4,7 +4,7 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class BedTracker {
+public class ExplosionTracker {
 
     private static boolean shouldPrintDamage = true;
     private static ConcurrentLinkedQueue<BlockPos> bedPositions = new ConcurrentLinkedQueue<>();
@@ -27,11 +27,11 @@ public class BedTracker {
     }
 
     public static void setShouldPrintDamage(boolean shouldPrintDamage) {
-        BedTracker.shouldPrintDamage = shouldPrintDamage;
+        ExplosionTracker.shouldPrintDamage = shouldPrintDamage;
     }
 
     public static void setDamageThreshold(int damageThreshold) {
-        BedTracker.damageThreshold = damageThreshold;
+        ExplosionTracker.damageThreshold = damageThreshold;
     }
 
     public static void resetBedPositions() {

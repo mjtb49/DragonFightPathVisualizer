@@ -1,7 +1,7 @@
 package matthewbolan.enderdragonpaths.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
-import matthewbolan.enderdragonpaths.util.BedTracker;
+import matthewbolan.enderdragonpaths.util.ExplosionTracker;
 import net.minecraft.server.command.ServerCommandSource;
 
 import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
@@ -15,7 +15,7 @@ public class PrintBedDamageCommand {
         dispatcher.register(
             literal("printBedDamage").then(
                     argument("shouldPrintDamage", bool()).executes( c-> {
-                                BedTracker.setShouldPrintDamage(getBool(c, "shouldPrintDamage"));
+                                ExplosionTracker.setShouldPrintDamage(getBool(c, "shouldPrintDamage"));
                                 return  1;
                             }
                     )

@@ -1,7 +1,7 @@
 package matthewbolan.enderdragonpaths.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
-import matthewbolan.enderdragonpaths.util.BedTracker;
+import matthewbolan.enderdragonpaths.util.ExplosionTracker;
 import net.minecraft.server.command.ServerCommandSource;
 
 import static com.mojang.brigadier.arguments.IntegerArgumentType.getInteger;
@@ -14,7 +14,7 @@ public class SetDamageThresholdCommand {
         dispatcher.register(
                 literal("setDamageThreshold").then(
                         argument("threshold", integer()).executes( c-> {
-                                    BedTracker.setDamageThreshold(getInteger(c, "threshold"));
+                                    ExplosionTracker.setDamageThreshold(getInteger(c, "threshold"));
                                     return  1;
                                 }
                         )

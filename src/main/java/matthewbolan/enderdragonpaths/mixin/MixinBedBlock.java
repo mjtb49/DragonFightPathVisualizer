@@ -1,6 +1,6 @@
 package matthewbolan.enderdragonpaths.mixin;
 
-import matthewbolan.enderdragonpaths.util.BedTracker;
+import matthewbolan.enderdragonpaths.util.ExplosionTracker;
 import net.minecraft.block.BedBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalFacingBlock;
@@ -26,7 +26,7 @@ public class MixinBedBlock extends HorizontalFacingBlock {
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack, CallbackInfo ci) {
         if (!world.isClient() && world.getDimensionRegistryKey() == DimensionType.THE_END_REGISTRY_KEY) {
             BlockPos blockPos = pos.offset(state.get(FACING));
-            BedTracker.addBedPosition(blockPos);
+            ExplosionTracker.addBedPosition(blockPos);
         }
     }
 }
