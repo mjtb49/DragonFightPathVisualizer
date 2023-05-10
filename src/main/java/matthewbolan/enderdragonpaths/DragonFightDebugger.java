@@ -62,7 +62,10 @@ public class DragonFightDebugger implements ModInitializer {
 			DRAGON_TRACER.render();
 			CLOSEST_TO_PLAYER.render();
 			CLOSEST_TO_DRAGON.render();
-			TextRenderer.render();
+			//TODO put the text on even footing with the others? Or have an option to disable text?
+			if (GRAPH_COMPONENTS.getRenderOption() != RendererGroup.RenderOption.NONE) {
+				TextRenderer.render();
+			}
 
 			GlStateManager.disableDepthTest();
 
