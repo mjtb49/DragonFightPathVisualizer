@@ -1,6 +1,7 @@
 package matthewbolan.enderdragonpaths.mixin;
 
 import matthewbolan.enderdragonpaths.DragonFightDebugger;
+import matthewbolan.enderdragonpaths.render.*;
 import matthewbolan.enderdragonpaths.util.HackyWorkaround;
 import matthewbolan.enderdragonpaths.util.ExplosionTracker;
 import matthewbolan.enderdragonpaths.util.DragonTracker;
@@ -30,9 +31,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import net.minecraft.entity.ai.pathing.Path;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import matthewbolan.enderdragonpaths.render.Color;
-import matthewbolan.enderdragonpaths.render.Cube;
-import matthewbolan.enderdragonpaths.render.Line;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -100,8 +98,8 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
          double x = target.getX();
          double y = target.getY();
          double z = target.getZ();
-         Cube cube = new Cube(new Vec3d(x, y, z), Color.ORANGE);
-         DragonFightDebugger.submitTarget(cube);
+         Crosshair crosshair = new Crosshair(new Vec3d(x, y, z), 0.5, Color.ORANGE);
+         DragonFightDebugger.submitTarget(crosshair);
       }
 
       //Tracer
@@ -237,6 +235,7 @@ public abstract class MixinEnderDragonEntity extends LivingEntity implements Hac
                }
             }
             DragonFightDebugger.submitElement(coob);
+            TextRenderer.add(Vec3d.ofCenter(pathNodes[i].getPos()), "" + i, 0.075f);
          }
 
          //TODO should this be feature?

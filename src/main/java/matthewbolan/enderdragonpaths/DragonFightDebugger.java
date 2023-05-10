@@ -2,26 +2,21 @@ package matthewbolan.enderdragonpaths;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import matthewbolan.enderdragonpaths.render.Cube;
-import matthewbolan.enderdragonpaths.render.Line;
+import matthewbolan.enderdragonpaths.render.*;
 import matthewbolan.enderdragonpaths.util.ExplosionTracker;
-import matthewbolan.enderdragonpaths.render.RendererGroup;
 import matthewbolan.enderdragonpaths.util.PathFinder;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.boss.dragon.phase.Phase;
-import matthewbolan.enderdragonpaths.render.PathRenderer;
-import matthewbolan.enderdragonpaths.render.RenderQueue;
-import matthewbolan.enderdragonpaths.render.Renderer;
 import net.minecraft.util.math.Vec3d;
 
 public class DragonFightDebugger implements ModInitializer {
 
-	private static final RendererGroup<Cube> TARGETS = new RendererGroup<>(1, RendererGroup.RenderOption.RENDER_FRONT);
+	private static final RendererGroup<Crosshair> TARGETS = new RendererGroup<>(1, RendererGroup.RenderOption.RENDER_FRONT);
 	private static final RendererGroup<Cube> CLOSEST_TO_PLAYER = new RendererGroup<>(1, RendererGroup.RenderOption.RENDER_FRONT);
 	private static final RendererGroup<Cube> CLOSEST_TO_DRAGON = new RendererGroup<>(1, RendererGroup.RenderOption.RENDER_FRONT);
-	private static final RendererGroup<Line> DRAGON_HEAD_SPOTS = new RendererGroup<>(200, RendererGroup.RenderOption.RENDER_FRONT);
+	private static final RendererGroup<Line> DRAGON_TRACER = new RendererGroup<>(200, RendererGroup.RenderOption.RENDER_FRONT);
 	private static final RendererGroup<Renderer> GRAPH_COMPONENTS = new RendererGroup<>(300, RendererGroup.RenderOption.RENDER_BACK);
 	private static final RendererGroup<PathRenderer> PATHS = new RendererGroup<>(1, RendererGroup.RenderOption.RENDER_FRONT);
 	private static RendererGroup<PathRenderer> FUTURE_PATHS = new RendererGroup<>(4, RendererGroup.RenderOption.RENDER_FRONT);
@@ -44,12 +39,12 @@ public class DragonFightDebugger implements ModInitializer {
 		CLOSEST_TO_PLAYER.addRenderer(r);
 	}
 
-	public static void submitTarget(Cube r) {
+	public static void submitTarget(Crosshair r) {
 		TARGETS.addRenderer(r);
 	}
 
 	public static void submitHeadPosition(Line r) {
-		DRAGON_HEAD_SPOTS.addRenderer(r);
+		DRAGON_TRACER.addRenderer(r);
 	}
 
 	@Override
@@ -64,9 +59,10 @@ public class DragonFightDebugger implements ModInitializer {
 			FUTURE_PATHS.render();
 			PATHS.render();
 			TARGETS.render();
-			DRAGON_HEAD_SPOTS.render();
+			DRAGON_TRACER.render();
 			CLOSEST_TO_PLAYER.render();
 			CLOSEST_TO_DRAGON.render();
+			TextRenderer.render();
 
 			GlStateManager.disableDepthTest();
 
@@ -76,16 +72,16 @@ public class DragonFightDebugger implements ModInitializer {
 	}
 
 	public static void setTracerRenderOptions(RendererGroup.RenderOption option, int ticks) {
-		DRAGON_HEAD_SPOTS.setRenderOption(option);
-		DRAGON_HEAD_SPOTS.setSizeCap(ticks);
+		DRAGON_TRACER.setRenderOption(option);
+		DRAGON_TRACER.setSizeCap(ticks);
 	}
 
 	public static void setTracerRenderOptions(RendererGroup.RenderOption option) {
-		DRAGON_HEAD_SPOTS.setRenderOption(option);
+		DRAGON_TRACER.setRenderOption(option);
 	}
 
 	public static void setTracerRenderOptions(int ticks) {
-		DRAGON_HEAD_SPOTS.setSizeCap(ticks);
+		DRAGON_TRACER.setSizeCap(ticks);
 	}
 
 	public static void setPathRenderOption(RendererGroup.RenderOption option) {
@@ -121,16 +117,18 @@ public class DragonFightDebugger implements ModInitializer {
 
 	public static void clearGraph() {
 		GRAPH_COMPONENTS.clear();
+		TextRenderer.clear();
 	}
 
 	public static void clearAll() {
 		TARGETS.clear();
 		GRAPH_COMPONENTS.clear();
 		PATHS.clear();
-		DRAGON_HEAD_SPOTS.clear();
+		DRAGON_TRACER.clear();
 		FUTURE_PATHS.clear();
 		CLOSEST_TO_DRAGON.clear();
 		CLOSEST_TO_PLAYER.clear();
+		TextRenderer.clear();
 		ExplosionTracker.resetBedPositions();
 	}
 }
